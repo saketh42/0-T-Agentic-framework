@@ -1,0 +1,21 @@
+{
+  "name": "policy-engine-module",
+  "version": "1.0.0",
+  "description": "Policy Decision Point backend for an Agentic Cybersecurity Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "policy-engine",
+    "express",
+    "zero-trust",
+    "cybersecurity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
