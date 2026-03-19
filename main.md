@@ -498,3 +498,16 @@ The architecture operationalizes Zero Trust for AI agents by:
 • Maintaining comprehensive observability and tamper evident logs for analysis and governance.
 
 At the same time, it follows emerging agentic AI security and governance guidance: multi agent design patterns, layered guardrails, and human in the loop oversight for high impact decisions.
+
+
+# Architecture
+- Python
+- React.js
+- postgresql
+- redis
+- pinecone
+- neo4j
+- elastic search
+- docker
+- kubernetes
+- kafka
