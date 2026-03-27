@@ -498,3 +498,103 @@ The architecture operationalizes Zero Trust for AI agents by:
 • Maintaining comprehensive observability and tamper evident logs for analysis and governance.
 
 At the same time, it follows emerging agentic AI security and governance guidance: multi agent design patterns, layered guardrails, and human in the loop oversight for high impact decisions.
+
+
+# Architecture
+- Python
+- React.js
+- postgresql
+- redis
+- pinecone
+- neo4j
+- elastic search
+- docker
+- kubernetes
+- kafka
+
+---
+
+# Identity Agent Team Split
+
+## Scope
+
+Our team owns the identity agent flow and the schemas/contracts needed by the database team.
+
+The database team will handle storage, queries, and persistence based on the schemas we provide.
+
+## End-to-End Flow
+
+1. Validate request
+2. Look up agent in registry
+3. Check whether agent is active or blocked
+4. Fetch metadata
+5. Build decision context
+6. Write audit log event
+7. Return final output
+
+## Person 1 Ownership
+
+Person 1 owns the input side of the identity agent.
+
+- Request schema
+- Step 1 validation logic
+- Step 2 registry lookup flow
+- Invalid request handling
+- Unknown agent handling
+- Registry contract/schema for DB team
+
+## Person 2 Ownership
+
+Person 2 owns the output and enrichment side of the identity agent.
+
+- Metadata schema needed from DB team
+- Step 3 metadata fetch flow
+- Active/blocked decision handling
+- Decision context/output schema
+- Audit log schema
+- Final success response structure
+
+## Shared Deliverables
+
+- Full identity agent pseudocode
+- Final architecture approval draft
+- Handoff document for DB team
+- Final schema review before implementation
+
+## Schemas To Hand Off To DB Team
+
+### Registry Schema
+
+- `agent_id`
+- `tenant_id`
+- `environment`
+- `status`
+- `ownership_team`
+- `registered_at`
+- `updated_at`
+
+### Metadata Schema
+
+- `agent_id`
+- `role`
+- `risk_tier`
+- `autonomy_level`
+- `allowed_tools`
+- `capabilities`
+- `governance_tags`
+- `updated_at`
+
+### Audit Log Schema
+
+- `event_id`
+- `timestamp`
+- `agent_id`
+- `session_id`
+- `tenant_id`
+- `environment`
+- `origin`
+- `network_zone`
+- `event_type`
+- `decision`
+- `reason`
+- `hash` or `tamper_proof_ref`
