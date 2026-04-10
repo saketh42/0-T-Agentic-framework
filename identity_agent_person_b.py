@@ -40,6 +40,7 @@ class DecisionContext(BaseModel):
     session_id: str
     metadata: AgentMetadata
     status: str
+    timestamp: datetime
 
 class FinalResponse(BaseModel):
     success: bool
@@ -127,7 +128,8 @@ def person_b_enrichment_flow(
         origin=request_context.get("origin", "unknown"),
         session_id=request_context.get("session_id", "unknown"),
         metadata=metadata,
-        status=registry_status
+        status=registry_status,
+        timestamp=datetime.utcnow()
     )
 
     # Step 6 for Success: Write audit log event
