@@ -1,0 +1,84 @@
+{
+  "registry_records": {
+    "agent-001": {
+      "active": {
+        "agent_id": "agent-001",
+        "tenant_id": "tenant-acme",
+        "environment": "prod",
+        "ownership_team": "security",
+        "registered_at": "2024-01-15T10:00:00Z",
+        "updated_at": "2024-01-15T10:00:00Z"
+      },
+      "suspended": {
+        "agent_id": "agent-001",
+        "tenant_id": "tenant-acme",
+        "environment": "prod",
+        "ownership_team": "security",
+        "registered_at": "2024-01-15T10:00:00Z",
+        "updated_at": "2024-01-20T14:30:00Z"
+      },
+      "disabled": {
+        "agent_id": "agent-001",
+        "tenant_id": "tenant-acme",
+        "environment": "prod",
+        "ownership_team": "security",
+        "registered_at": "2024-01-15T10:00:00Z",
+        "updated_at": "2024-01-22T09:15:00Z"
+      },
+      "pending": {
+        "agent_id": "agent-001",
+        "tenant_id": "tenant-acme",
+        "environment": "prod",
+        "ownership_team": "security",
+        "registered_at": "2024-01-25T08:00:00Z",
+        "updated_at": "2024-01-25T08:00:00Z"
+      }
+    },
+    "agent-highrisk": {
+      "active": {
+        "agent_id": "agent-highrisk",
+        "tenant_id": "tenant-acme",
+        "environment": "prod",
+        "ownership_team": "incident-response",
+        "registered_at": "2024-01-10T09:00:00Z",
+        "updated_at": "2024-01-10T09:00:00Z"
+      }
+    }
+  },
+  "metadata": {
+    "agent-001": {
+      "role": "triage",
+      "risk_tier": "medium",
+      "autonomy_level": "supervised",
+      "allowed_tools": ["siem_query", "log_search"],
+      "capabilities": ["alert_triage", "enrichment"],
+      "governance_tags": ["pci", "sox"],
+      "updated_at": "2024-01-15T10:00:00Z"
+    },
+    "agent-highrisk": {
+      "role": "containment",
+      "risk_tier": "critical",
+      "autonomy_level": "autonomous",
+      "allowed_tools": ["containment", "quarantine", "block_ip"],
+      "capabilities": ["host_isolation", "traffic_blocking"],
+      "governance_tags": ["pci", "hipaa", "fedramp"],
+      "updated_at": "2024-01-10T09:00:00Z"
+    }
+  },
+  "cross_tenant_record": {
+    "agent_id": "agent-001",
+    "tenant_id": "tenant-acme",
+    "environment": "prod",
+    "ownership_team": "security",
+    "registered_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  "cross_environment_record": {
+    "agent_id": "agent-001",
+    "tenant_id": "tenant-acme",
+    "environment": "prod",
+    "ownership_team": "security",
+    "registered_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  }
+}

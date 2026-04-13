@@ -1,0 +1,98 @@
+{
+  "requests": {
+    "valid_request": {
+      "agent_id": "agent-001",
+      "tenant_id": "tenant-acme",
+      "environment": "prod",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "missing_agent_id": {
+      "tenant_id": "tenant-acme",
+      "environment": "prod"
+    },
+    "empty_agent_id": {
+      "agent_id": "",
+      "tenant_id": "tenant-acme",
+      "environment": "prod"
+    },
+    "missing_tenant_id": {
+      "agent_id": "agent-001",
+      "environment": "prod"
+    },
+    "missing_environment": {
+      "agent_id": "agent-001",
+      "tenant_id": "tenant-acme"
+    },
+    "whitespace_agent_id": {
+      "agent_id": "   ",
+      "tenant_id": "tenant-acme",
+      "environment": "prod"
+    },
+    "unknown_agent": {
+      "agent_id": "agent-unknown",
+      "tenant_id": "tenant-acme",
+      "environment": "prod",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "cross_tenant": {
+      "agent_id": "agent-001",
+      "tenant_id": "wrong-tenant",
+      "environment": "prod",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "cross_environment": {
+      "agent_id": "agent-001",
+      "tenant_id": "tenant-acme",
+      "environment": "staging",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "suspended_agent": {
+      "agent_id": "agent-001",
+      "tenant_id": "tenant-acme",
+      "environment": "prod",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "disabled_agent": {
+      "agent_id": "agent-001",
+      "tenant_id": "tenant-acme",
+      "environment": "prod",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "pending_agent": {
+      "agent_id": "agent-001",
+      "tenant_id": "tenant-acme",
+      "environment": "prod",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "missing_metadata": {
+      "agent_id": "agent-001",
+      "tenant_id": "tenant-acme",
+      "environment": "prod",
+      "session_id": "sess-12345",
+      "origin": "192.168.1.100",
+      "network_zone": "dmz"
+    },
+    "high_risk_agent": {
+      "agent_id": "agent-highrisk",
+      "tenant_id": "tenant-acme",
+      "environment": "prod",
+      "session_id": "sess-99999",
+      "origin": "10.0.0.50",
+      "network_zone": "internal"
+    }
+  }
+}
