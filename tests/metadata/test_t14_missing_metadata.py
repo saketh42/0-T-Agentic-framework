@@ -1,7 +1,7 @@
 """T14: Missing metadata returns error"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_missing_metadata(test_inputs, mock_db_active_no_metadata):

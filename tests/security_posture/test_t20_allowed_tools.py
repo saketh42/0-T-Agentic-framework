@@ -1,7 +1,7 @@
 """T20: Security posture - allowed_tools passed through"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_security_posture_allowed_tools(test_inputs, mock_db_high_risk):

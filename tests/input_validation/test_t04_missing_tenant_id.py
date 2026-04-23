@@ -1,7 +1,7 @@
 """T04: Missing tenant_id"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_missing_tenant_id(test_inputs, mock_db_active):

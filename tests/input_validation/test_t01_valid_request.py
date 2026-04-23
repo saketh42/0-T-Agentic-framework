@@ -1,7 +1,7 @@
 """T01: Valid request returns success"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_valid_request_returns_success(test_inputs, mock_db_active):

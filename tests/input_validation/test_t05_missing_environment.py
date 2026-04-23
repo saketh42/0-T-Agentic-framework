@@ -1,7 +1,7 @@
 """T05: Missing environment"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_missing_environment(test_inputs, mock_db_active):

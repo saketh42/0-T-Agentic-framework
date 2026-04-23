@@ -1,7 +1,7 @@
 """T07: Invalid JSON payload"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_invalid_json_payload(test_inputs, mock_db_active):

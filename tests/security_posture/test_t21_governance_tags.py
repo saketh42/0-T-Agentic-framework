@@ -1,7 +1,7 @@
 """T21: Security posture - governance_tags passed through"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_security_posture_governance_tags(test_inputs, mock_db_high_risk):

@@ -10,14 +10,14 @@ import pytest
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pseudocode"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from identity_agent import (
+from core.schemas import (
     RegistryRecord,
     AgentMetadata,
-    DatabaseClient,
-    identity_agent_flow
 )
+from core.database import DatabaseClient
+from core.identity_agent import identity_agent_flow
 
 
 def load_json(filename):

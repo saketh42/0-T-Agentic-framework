@@ -1,7 +1,7 @@
 """T06: Whitespace-only agent_id"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_whitespace_agent_id(test_inputs, mock_db_active):

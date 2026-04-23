@@ -1,7 +1,7 @@
 """T24: Decision context has all required fields"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_decision_context_all_fields(test_inputs, mock_db_active):

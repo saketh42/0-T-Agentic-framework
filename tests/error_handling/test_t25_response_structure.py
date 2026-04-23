@@ -1,7 +1,7 @@
 """T25: FinalResponse has correct structure"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_response_structure_success(test_inputs, mock_db_active):

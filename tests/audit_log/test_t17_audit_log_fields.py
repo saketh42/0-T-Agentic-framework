@@ -1,7 +1,7 @@
 """T17: Audit log has all required fields"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from core.identity_agent import identity_agent_flow
 
 
 def test_audit_log_required_fields(test_inputs, mock_db_active):
