@@ -1,158 +1,9 @@
 # Identity Agent Test Documentation
 
-## Overview
 
-This document details the test strategy, test data, and coverage for the Identity Agent component of the Agentic Security Platform. The tests follow a **test-first approach** with comprehensive coverage of all 7 steps in the identity validation flow.
 
----
 
-## 1. Test Architecture
-
-### 1.1 Directory Structure
-
-```
-tests/
-├── conftest.py                      # Shared pytest fixtures
-├── test_data/
-│   ├── identity_agent_inputs.json   # Test request payloads
-│   └── identity_agent_mocks.json  # Mock data for DB
-├── input_validation/
-│   ├── __init__.py
-│   ├── test_t01_valid_request.py
-│   ├── test_t02_missing_agent_id.py
-│   ├── test_t03_empty_agent_id.py
-│   ├── test_t04_missing_tenant_id.py
-│   ├── test_t05_missing_environment.py
-│   ├── test_t06_whitespace_agent_id.py
-│   └── test_t07_invalid_json.py
-├── registry_lookup/
-│   ├── __init__.py
-│   ├── test_t08_unknown_agent.py
-│   ├── test_t09_cross_tenant.py
-│   └── test_t10_cross_environment.py
-├── status_decision/
-│   ├── __init__.py
-│   ├── test_t11_suspended.py
-│   ├── test_t12_disabled.py
-│   └── test_t13_pending.py
-├── metadata/
-│   ├── __init__.py
-│   └── test_t14_missing_metadata.py
-├── audit_log/
-│   ├── __init__.py
-│   ├── test_t15_audit_log_success.py
-│   ├── test_t16_audit_log_denial.py
-│   ├── test_t17_audit_log_fields.py
-│   └── test_t23_audit_log_unique.py
-├── decision_context/
-│   ├── __init__.py
-│   ├── test_t18_timestamp.py
-│   └── test_t24_decision_context_fields.py
-├── security_posture/
-│   ├── __init__.py
-│   ├── test_t19_risk_tier.py
-│   ├── test_t20_allowed_tools.py
-│   └── test_t21_governance_tags.py
-└── error_handling/
-    ├── __init__.py
-    ├── test_t22_null_db_client.py
-    └── test_t25_response_structure.py
-```
-
-### 1.2 Running Tests
-
-```bash
-python3 -m pytest tests/ -v
-```
-
-Output:
-```
-============================= test session starts ==============================
-...
-tests/input_validation/test_t01_valid_request.py::test_valid_request_returns_success PASSED
-tests/input_validation/test_t02_missing_agent_id.py::test_missing_agent_id PASSED
-...
-========================= 26 passed in 0.XX s =========================
-```
-
----
-
-## 2. Test Data Files
-
-### 2.1 identity_agent_inputs.json
-
-Contains 14 test request payloads covering various scenarios:
-
-| Key | Description |
-|-----|------------|
-| `valid_request` | Complete valid request |
-| `missing_agent_id` | Missing required field |
-| `empty_agent_id` | Empty string value |
-| `missing_tenant_id` | Missing tenant_id |
-| `missing_environment` | Missing environment |
-| `whitespace_agent_id` | Whitespace-only value |
-| `unknown_agent` | Agent not in registry |
-| `cross_tenant` | Wrong tenant access attempt |
-| `cross_environment` | Wrong environment access attempt |
-| `suspended_agent` | Suspended status agent |
-| `disabled_agent` | Disabled status agent |
-| `pending_agent` | Pending status agent |
-| `missing_metadata` | Active agent without metadata |
-| `high_risk_agent` | High/critical risk agent |
-
-**Schema:**
-```json
-{
-  "requests": {
-    "<key>": {
-      "agent_id": "string",
-      "tenant_id": "string",
-      "environment": "string",
-      "session_id": "string",
-      "origin": "string",
-      "network_zone": "string"
-    }
-  }
-}
-```
-
-### 2.2 identity_agent_mocks.json
-
-Contains mock database data for testing:
-
-#### Registry Records
-
-| Agent | Status | Tenant | Environment | Risk Tier |
-|-------|--------|--------|--------------|-----------|
-| agent-001 | active | tenant-acme | prod | medium |
-| agent-001 | suspended | tenant-acme | prod | - |
-| agent-001 | disabled | tenant-acme | prod | - |
-| agent-001 | pending | tenant-acme | prod | - |
-| agent-highrisk | active | tenant-acme | prod | critical |
-
-#### Metadata Records
-
-**agent-001:**
-- role: "triage"
-- risk_tier: "medium"
-- autonomy_level: "supervised"
-- allowed_tools: ["siem_query", "log_search"]
-- capabilities: ["alert_triage", "enrichment"]
-- governance_tags: ["pci", "sox"]
-
-**agent-highrisk:**
-- role: "containment"
-- risk_tier: "critical"
-- autonomy_level: "autonomous"
-- allowed_tools: ["containment", "quarantine", "block_ip"]
-- capabilities: ["host_isolation", "traffic_blocking"]
-- governance_tags: ["pci", "hipaa", "fedramp"]
-
----
-
-## 3. Test Coverage
-
-### Part 1: Detailed Description
+### Detailed Description
 
 | Test ID | Test Name | Test Description | Expected Input | Expected Output |
 |---------|----------|-----------------|---------------|----------------|
@@ -182,7 +33,7 @@ Contains mock database data for testing:
 | T24 | Decision context all fields | All 9 fields present | `valid_request` payload | All fields non-null |
 | T25 | Response structure correct | Response structure validation | `valid_request` payload | `decision_context`, `audit_event_id`, `error_message` correct |
 
-### Part 2: Compact Table
+### Compact Table
 
 | Test ID | Test Name | Expected Input | Expected Output |
 |---------|----------|---------------|----------------|
@@ -214,7 +65,7 @@ Contains mock database data for testing:
 
 ---
 
-## 4. Test Coverage by Flow Step
+## Test Coverage by Flow Step
 
 The Identity Agent flow has 7 steps. Each step is tested comprehensively.
 
