@@ -12,12 +12,12 @@ TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from core.schemas import (
+from schemas import (
     RegistryRecord,
     AgentMetadata,
 )
-from core.database import DatabaseClient
-from core.identity_agent import identity_agent_flow
+from database import DatabaseClient
+from identity_agent import identity_agent_flow
 
 
 def load_json(filename):

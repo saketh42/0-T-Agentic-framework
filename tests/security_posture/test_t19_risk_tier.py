@@ -1,7 +1,7 @@
 """T19: Security posture - risk_tier passed through"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_security_posture_risk_tier(test_inputs, mock_db_high_risk):

@@ -10,8 +10,8 @@ from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from .schemas import RegistryRecord, AgentMetadata, AuditLogEvent
-from .database import DatabaseClient
+from schemas import RegistryRecord, AgentMetadata, AuditLogEvent
+from database import DatabaseClient
 
 
 class PostgresDatabaseClient(DatabaseClient):
@@ -21,7 +21,7 @@ class PostgresDatabaseClient(DatabaseClient):
         self.connection = psycopg2.connect(
             host=os.getenv("DB_HOST", "localhost"),
             port=os.getenv("DB_PORT", "5432"),
-            database=os.getenv("DB_NAME", "postgres"),
+            database=os.getenv("DB_NAME", "identity_agent"),
             user=os.getenv("DB_USER", "postgres"),
             password=os.getenv("DB_PASSWORD", "postgres")
         )
@@ -32,17 +32,11 @@ class PostgresDatabaseClient(DatabaseClient):
             cursor.execute(query, params)
             return cursor.fetchone()
     
-    def _execute_all(self, query: str, params: tuple = None):
-        """Execute a query and return all results"""
-        with self.connection.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(query, params)
-            return cursor.fetchall()
-    
     def fetch_from_registry_active(self, agent_id: str) -> Optional[RegistryRecord]:
         query = """
-            SELECT agent_id, tenant_id, environment, ownership_team, 
+            SELECT agent_id, tenant_id, environment, ownership_team,
                    registered_at, updated_at
-            FROM agents 
+            FROM agents
             WHERE agent_id = %s AND status = 'active'
         """
         result = self._execute(query, (agent_id,))
@@ -61,7 +55,7 @@ class PostgresDatabaseClient(DatabaseClient):
         query = """
             SELECT agent_id, tenant_id, environment, ownership_team,
                    registered_at, updated_at
-            FROM agents 
+            FROM agents
             WHERE agent_id = %s AND status = 'suspended'
         """
         result = self._execute(query, (agent_id,))
@@ -80,7 +74,7 @@ class PostgresDatabaseClient(DatabaseClient):
         query = """
             SELECT agent_id, tenant_id, environment, ownership_team,
                    registered_at, updated_at
-            FROM agents 
+            FROM agents
             WHERE agent_id = %s AND status = 'disabled'
         """
         result = self._execute(query, (agent_id,))
@@ -99,7 +93,7 @@ class PostgresDatabaseClient(DatabaseClient):
         query = """
             SELECT agent_id, tenant_id, environment, ownership_team,
                    registered_at, updated_at
-            FROM agents 
+            FROM agents
             WHERE agent_id = %s AND status = 'pending'
         """
         result = self._execute(query, (agent_id,))
@@ -118,7 +112,7 @@ class PostgresDatabaseClient(DatabaseClient):
         query = """
             SELECT agent_id, role, risk_tier, autonomy_level,
                    allowed_tools, capabilities, governance_tags, updated_at
-            FROM agents 
+            FROM agents
             WHERE agent_id = %s AND status = 'active'
         """
         result = self._execute(query, (agent_id,))

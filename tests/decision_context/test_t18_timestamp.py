@@ -1,7 +1,7 @@
 """T18: Decision context has timestamp"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_decision_context_timestamp(test_inputs, mock_db_active):

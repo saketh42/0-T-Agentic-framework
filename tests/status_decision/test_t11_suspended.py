@@ -1,7 +1,7 @@
 """T11: Suspended agent denied"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_suspended_agent(test_inputs, mock_db_suspended):

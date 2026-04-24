@@ -1,7 +1,7 @@
 """T23: Audit log event_id is unique per request"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_audit_log_event_id_unique(test_inputs, mock_db_active):

@@ -1,7 +1,7 @@
 """T08: Unknown agent"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_unknown_agent(test_inputs, mock_db_unknown):

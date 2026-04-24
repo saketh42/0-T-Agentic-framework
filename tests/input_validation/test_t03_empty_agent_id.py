@@ -1,7 +1,7 @@
 """T03: Empty agent_id"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_empty_agent_id(test_inputs, mock_db_active):

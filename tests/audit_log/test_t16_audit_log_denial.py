@@ -1,7 +1,7 @@
 """T16: Audit log written on denial"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_audit_log_on_denial(test_inputs, mock_db_suspended):

@@ -1,7 +1,7 @@
 """T22: Null database client returns error"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_null_db_client(test_inputs):

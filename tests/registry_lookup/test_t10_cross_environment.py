@@ -2,7 +2,7 @@
 
 import pytest
 from conftest import create_mock_db_with_record
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_cross_environment(test_inputs, cross_environment_record):

@@ -1,7 +1,7 @@
 """T12: Disabled agent denied"""
 
 import pytest
-from core.identity_agent import identity_agent_flow
+from identity_agent import identity_agent_flow
 
 
 def test_disabled_agent(test_inputs, mock_db_disabled):
