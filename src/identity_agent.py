@@ -7,12 +7,12 @@ Wires all steps together in the correct sequence.
 from typing import Dict, Any, Optional
 from schemas import FinalResponse
 
-from steps.step1_validate_request import validate_request, validate_required_fields
-from steps.step2_connect_db import connect_to_database
-from steps.step3_check_registry import check_registry
-from steps.step4_fetch_metadata import fetch_metadata
-from steps.step5_build_decision_context import build_decision_context
-from steps.step6_send_to_policy_agent import send_to_policy_agent, create_allow_audit_log
+from step1_validate_request import validate_request, validate_required_fields
+from step2_connect_db import connect_to_database
+from step3_check_registry import check_registry
+from step4_fetch_metadata import fetch_metadata
+from step5_build_decision_context import build_decision_context
+from step6_send_to_policy_agent import send_to_policy_agent, create_allow_audit_log
 
 
 def identity_agent_flow(

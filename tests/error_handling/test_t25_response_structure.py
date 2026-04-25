@@ -9,7 +9,7 @@ def test_response_structure_success(test_inputs, mock_db_active):
     result = identity_agent_flow(payload, mock_db_active)
 
     assert result.decision_context is not None
-    assert result.audit_event_id is not None
+    assert result.audit_event_id is None  # Success goes to Policy Agent, no audit log
     assert result.error_message is None
 
 
@@ -19,4 +19,4 @@ def test_response_structure_failure(test_inputs, mock_db_suspended):
 
     assert result.decision_context is None
     assert result.error_message is not None
-    assert result.audit_event_id is not None
+    assert result.audit_event_id is not None  # Failure writes to audit log
