@@ -9,7 +9,7 @@ from database import DatabaseClient
 from schemas import IdentityRequest, RegistryRecord, AgentMetadata, FinalResponse
 
 
-def fetch_metadata(
+def fetch_agent_metadata(
     agent_id: str,
     db_client: DatabaseClient
 ) -> Tuple[Optional[AgentMetadata], Optional[FinalResponse]]:
@@ -21,7 +21,7 @@ def fetch_metadata(
         (None, FinalResponse) on failure
     """
     print("\n" + "="*60)
-    print("📋 STEP 4: FETCH METADATA")
+    print(" STEP 4: FETCH METADATA")
     print("="*60)
     print(f"\n   Fetching metadata for: {agent_id}")
     
@@ -29,14 +29,14 @@ def fetch_metadata(
     
     if not metadata:
         error = FinalResponse(
-            success=False,
-            error_message=f"Missing metadata in DB for agent {agent_id}"
+            is_authorized=False,
+            failure_reason=f"Missing metadata in DB for agent {agent_id}"
         )
-        print(f"   ❌ Metadata not found")
+        print(f"    Metadata not found")
         return None, error
     
-    print("   ✅ Metadata fetched successfully")
-    print(f"\n   📋 Security Posture:")
+    print("    Metadata fetched successfully")
+    print(f"\n    Security Posture:")
     print(f"      - role: {metadata.role}")
     print(f"      - risk_tier: {metadata.risk_tier}")
     print(f"      - autonomy_level: {metadata.autonomy_level}")

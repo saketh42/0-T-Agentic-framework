@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime
 
 
-def send_to_policy_agent(
+def submit_to_gateway(
     request: IdentityRequest,
     decision_context: IdentityDecisionContext
 ) -> Tuple[Optional[AuditLogEvent], Optional[FinalResponse]]:
@@ -30,11 +30,11 @@ def send_to_policy_agent(
         (None, FinalResponse) on failure
     """
     print("\n" + "="*60)
-    print("📨 STEP 6: SEND TO POLICY AGENT")
+    print(" STEP 6: SEND TO POLICY AGENT")
     print("="*60)
     
     print(f"\n   Sending DecisionContext to Policy Agent...")
-    print(f"   📤 Payload (Full DecisionContext):")
+    print(f"    Payload (Full DecisionContext):")
     print(f"      - agent_id: {decision_context.agent_id}")
     print(f"      - tenant_id: {decision_context.tenant_id}")
     print(f"      - environment: {decision_context.environment}")
@@ -43,7 +43,7 @@ def send_to_policy_agent(
     print(f"      - session_id: {decision_context.session_id}")
     print(f"      - status: {decision_context.status}")
     print(f"      - timestamp: {decision_context.timestamp}")
-    print(f"\n      📋 Security Posture (metadata):")
+    print(f"\n       Security Posture (metadata):")
     print(f"         - agent_id: {decision_context.metadata.agent_id}")
     print(f"         - role: {decision_context.metadata.role}")
     print(f"         - risk_tier: {decision_context.metadata.risk_tier}")
@@ -57,8 +57,8 @@ def send_to_policy_agent(
     policy_decision = "ALLOW"
     policy_reason = "Agent is active and identity validated successfully"
     
-    print(f"\n   📥 Policy Agent Response: {policy_decision}")
-    print(f"   📥 Reason: {policy_reason}")
+    print(f"\n    Policy Agent Response: {policy_decision}")
+    print(f"    Reason: {policy_reason}")
     
     # Create audit log
     audit_log = AuditLogEvent(
@@ -75,7 +75,7 @@ def send_to_policy_agent(
         reason=policy_reason
     )
     
-    print(f"\n   ✅ Audit log created: event_id={audit_log.event_id}")
+    print(f"\n    Audit log created: event_id={audit_log.event_id}")
     
     return audit_log, None
 

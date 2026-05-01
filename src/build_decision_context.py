@@ -14,7 +14,7 @@ from schemas import (
 )
 
 
-def build_decision_context(
+def build_identity_decision_context(
     request: IdentityRequest,
     metadata: AgentMetadata,
     status: str
@@ -26,7 +26,7 @@ def build_decision_context(
         IdentityDecisionContext
     """
     print("\n" + "="*60)
-    print("📦 STEP 5: BUILD DECISION CONTEXT")
+    print(" STEP 5: BUILD DECISION CONTEXT")
     print("="*60)
     
     decision_context = IdentityDecisionContext(
@@ -41,8 +41,8 @@ def build_decision_context(
         timestamp=datetime.utcnow()
     )
     
-    print("   ✅ Decision context built")
-    print(f"\n   📤 Decision Context Output:")
+    print("    Decision context built")
+    print(f"\n    Decision Context Output:")
     print(f"      - agent_id: {decision_context.agent_id}")
     print(f"      - tenant_id: {decision_context.tenant_id}")
     print(f"      - environment: {decision_context.environment}")
@@ -51,7 +51,7 @@ def build_decision_context(
     print(f"      - origin: {decision_context.origin}")
     print(f"      - session_id: {decision_context.session_id}")
     print(f"      - timestamp: {decision_context.timestamp}")
-    print(f"\n      📋 Security Posture:")
+    print(f"\n       Security Posture:")
     print(f"         - role: {decision_context.metadata.role}")
     print(f"         - risk_tier: {decision_context.metadata.risk_tier}")
     print(f"         - autonomy_level: {decision_context.metadata.autonomy_level}")

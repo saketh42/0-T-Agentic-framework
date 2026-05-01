@@ -2,7 +2,7 @@
 Core schemas for Identity Agent
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -19,21 +19,30 @@ class IdentityRequest(BaseModel):
 class RegistryRecord(BaseModel):
     agent_id: str
     tenant_id: str
-    environment: str
-    ownership_team: str
-    registered_at: datetime
-    updated_at: datetime
+    name: str
+    environment: Optional[str] = None
+    type: Optional[str] = None
+    purpose: Optional[str] = None
+    role: Optional[str] = None
+    status: str
+    risk_tier: Optional[str] = None
+    autonomy_level: Optional[str] = None
+    ownership_team: Optional[str] = None
+    governance_tags: List[str] = []
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class AgentMetadata(BaseModel):
     agent_id: str
+    name: str
     role: str
     risk_tier: str
     autonomy_level: str
     allowed_tools: List[str]
     capabilities: List[str]
     governance_tags: List[str]
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 
 class AuditLogEvent(BaseModel):
@@ -65,7 +74,19 @@ class IdentityDecisionContext(BaseModel):
 
 
 class FinalResponse(BaseModel):
-    success: bool
-    decision_context: Optional[IdentityDecisionContext] = None
-    audit_event_id: Optional[str] = None
-    error_message: Optional[str] = None
+    is_authorized: bool
+    identity_context: Optional[IdentityDecisionContext] = None
+    audit_log_id: Optional[str] = None
+    failure_reason: Optional[str] = None
+
+
+class STMSession(BaseModel):
+    session_id: str
+    agent_id: str
+    tenant_id: str
+    current_goal: str
+    current_plan: List[str] = []
+    intermediate_steps: List[str] = []
+    recent_tool_outputs: List[str] = []
+    flags: Dict[str, Any] = {}
+    last_updated: str

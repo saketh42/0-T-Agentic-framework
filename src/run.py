@@ -8,12 +8,12 @@ import sys
 sys.path.insert(0, 'core')
 
 from postgres_client import PostgresDatabaseClient
-from identity_agent import identity_agent_flow
+from identity_agent import identity_agent_service
 
 
 def main():
     print("\n" + "="*60)
-    print("🎯 IDENTITY AGENT - Interactive Testing")
+    print(" IDENTITY AGENT - Interactive Testing")
     print("="*60 + "\n")
     
     db = PostgresDatabaseClient()
@@ -44,10 +44,10 @@ def main():
         return
     
     print(f"\n{'='*60}")
-    print(f"🔍 Testing Agent: {agent_id}")
+    print(f" Testing Agent: {agent_id}")
     print('='*60)
     
-    result = identity_agent_flow({
+    result = identity_agent_service({
         'agent_id': agent_id,
         'tenant_id': 'tenant-acme',
         'environment': 'prod',
@@ -57,27 +57,27 @@ def main():
     }, db)
     
     print("\n" + "="*60)
-    print("📤 FINAL OUTPUT")
+    print(" FINAL OUTPUT")
     print("="*60)
-    print(f"\nSuccess: {result.success}")
+    print(f"\nSuccess: {result.is_authorized}")
     
-    if result.success:
-        print("\n✅ ACCESS GRANTED")
-        print(f"\n  Agent ID:       {result.decision_context.agent_id}")
-        print(f"  Tenant ID:      {result.decision_context.tenant_id}")
-        print(f"  Environment:    {result.decision_context.environment}")
-        print(f"  Status:         {result.decision_context.status}")
-        print(f"\n  📋 Security Posture:")
-        print(f"     Role:          {result.decision_context.metadata.role}")
-        print(f"     Risk Tier:     {result.decision_context.metadata.risk_tier}")
-        print(f"     Autonomy:      {result.decision_context.metadata.autonomy_level}")
-        print(f"     Allowed Tools: {', '.join(result.decision_context.metadata.allowed_tools)}")
-        print(f"     Governance:    {', '.join(result.decision_context.metadata.governance_tags)}")
+    if result.is_authorized:
+        print("\n ACCESS GRANTED")
+        print(f"\n  Agent ID:       {result.identity_context.agent_id}")
+        print(f"  Tenant ID:      {result.identity_context.tenant_id}")
+        print(f"  Environment:    {result.identity_context.environment}")
+        print(f"  Status:         {result.identity_context.status}")
+        print(f"\n   Security Posture:")
+        print(f"     Role:          {result.identity_context.metadata.role}")
+        print(f"     Risk Tier:     {result.identity_context.metadata.risk_tier}")
+        print(f"     Autonomy:      {result.identity_context.metadata.autonomy_level}")
+        print(f"     Allowed Tools: {', '.join(result.identity_context.metadata.allowed_tools)}")
+        print(f"     Governance:    {', '.join(result.identity_context.metadata.governance_tags)}")
     else:
-        print("\n❌ ACCESS DENIED")
-        print(f"\n  Error: {result.error_message}")
+        print("\n ACCESS DENIED")
+        print(f"\n  Error: {result.failure_reason}")
     
-    print(f"\n  Audit Event ID: {result.audit_event_id}")
+    print(f"\n  Audit Event ID: {result.audit_log_id}")
     print("\n" + "="*60)
     
     db.close()

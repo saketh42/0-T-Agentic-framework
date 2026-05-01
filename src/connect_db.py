@@ -9,7 +9,7 @@ from database import DatabaseClient
 from schemas import FinalResponse
 
 
-def connect_to_database(db_client: Optional[DatabaseClient] = None) -> tuple[Optional[DatabaseClient], Optional[FinalResponse]]:
+def establish_database_connection(db_client: Optional[DatabaseClient] = None) -> tuple[Optional[DatabaseClient], Optional[FinalResponse]]:
     """
     Connects to the database.
     
@@ -18,16 +18,16 @@ def connect_to_database(db_client: Optional[DatabaseClient] = None) -> tuple[Opt
         (None, FinalResponse) on failure
     """
     print("\n" + "="*60)
-    print("🔌 STEP 2: CONNECT TO DATABASE")
+    print(" STEP 2: CONNECT TO DATABASE")
     print("="*60)
     
     if db_client is None:
         error = FinalResponse(
-            success=False,
-            error_message="Database client not initialized"
+            is_authorized=False,
+            failure_reason="Database client not initialized"
         )
-        print("   ❌ Database client is None")
+        print("    Database client is None")
         return None, error
     
-    print("   ✅ Database connection established")
+    print("    Database connection established")
     return db_client, None
