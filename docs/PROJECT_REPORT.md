@@ -4,33 +4,22 @@
 
 ## 1. Scope
 
-### 1.1 Project Overview
-Development of the Identity & Context Service component for an Agentic Cyber Security Platform. This service implements non-human identity for agents and services under zero trust principles, as defined in the architecture specification (docs/main.md, Section 6.1).
+We built the Identity Service - the component that checks "who" an agent is before letting it do anything. Think of it like a security guard at the door. Built by a single developer, this service:
 
-### 1.2 Team Responsibilities
-Our team owns the identity agent flow and the schemas/contracts needed by the database team. The scope includes:
+- Checks if the agent is registered in the system
+- Verifies the agent is allowed to be here (right tenant, active status)
+- Gathers info about what the agent can do (its role, permissions, tools)
+- Sends this info to the Gateway for final approval
 
-**Person 1 (Input Side):**
-- Request schema definition
-- Step 1 validation logic
-- Step 2 registry lookup flow
-- Invalid request handling
-- Unknown agent handling
-- Registry contract/schema for DB team
+This follows the Zero Trust rule: "Never trust, always verify."
 
-**Person 2 (Output/Enrichment Side):**
-- Metadata schema from DB team
-- Step 3 metadata fetch flow
-- Active/blocked decision handling
-- Decision context/output schema
-- Audit log schema
-- Final success response structure
-
-### 1.3 Deliverables
-- Full identity agent pseudocode
-- Final architecture approval draft
-- Handoff document for DB team
-- Final schema review before implementation
+**What was delivered:**
+- ✅ Working identity service code (`src/identity_agent.py`)
+- ✅ Approved architecture document (`docs/main.md`)
+- ✅ Database schema handoff - what the DB team needs to build
+- ✅ STM (Short-Term Memory) integration with Redis
+- ✅ Code refactoring - clear function names, no emojis
+- ✅ FinalResponse schema updated for clarity
 
 ---
 
@@ -433,6 +422,8 @@ tests/
 │   ├── test_t11_suspended.py
 │   ├── test_t12_disabled.py
 │   └── test_t13_pending.py
+├── stm/
+│   └── test_stm_interface.py  (16 tests: 14 mock + 3 Redis)
 └── conftest.py
 ```
 
@@ -484,8 +475,8 @@ def test_unknown_agent_returns_deny():
 | `src/build_decision_context.py` | 62 | ✅ 2 unit tests |
 | `src/send_to_policy_agent.py` | 98 | ✅ Integration tested |
 | `src/schemas.py` | 92 | ✅ Validated via Pydantic |
-| `src/stm.py` | 35 | ⏳ Tests pending |
-| `src/stm_redis_client.py` | 112 | ⏳ Tests pending |
+| `src/stm.py` | 35 | ✅ 14 tests (mock) |
+| `src/stm_redis_client.py` | 112 | ✅ 3 tests (Redis, optional) |
 
 ### 11.2 Test Execution
 

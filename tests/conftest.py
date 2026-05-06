@@ -17,7 +17,7 @@ from schemas import (
     AgentMetadata,
 )
 from database import DatabaseClient
-from identity_agent import identity_agent_flow
+from identity_agent import identity_agent_service
 
 
 def load_json(filename):
