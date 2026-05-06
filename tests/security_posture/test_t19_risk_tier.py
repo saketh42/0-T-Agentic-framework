@@ -12,4 +12,4 @@ def test_security_posture_risk_tier(test_inputs, mock_db_high_risk):
     assert result.decision_context is not None
 
     assert result.decision_context.metadata.risk_tier == "critical"
-    assert result.decision_context.metadata.autonomy_level == "autonomous"
+    assert result.decision_context.metadata.autonomy_level == "execute"

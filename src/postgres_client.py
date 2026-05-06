@@ -34,96 +34,133 @@ class PostgresDatabaseClient(DatabaseClient):
     
     def fetch_from_registry_active(self, agent_id: str) -> Optional[RegistryRecord]:
         query = """
-            SELECT agent_id, tenant_id, environment, ownership_team,
-                   registered_at, updated_at
+            SELECT agent_id, tenant_id, name, type, purpose, role, status,
+                   risk_tier, autonomy_level, ownership_team, governance_tags,
+                   created_at, updated_at
             FROM agents
             WHERE agent_id = %s AND status = 'active'
         """
         result = self._execute(query, (agent_id,))
         if result:
             return RegistryRecord(
-                agent_id=result['agent_id'],
+                agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
-                environment=result['environment'],
+                name=result['name'],
+                environment=None,
+                type=result['type'],
+                purpose=result['purpose'],
+                role=result['role'],
+                status=result['status'],
+                risk_tier=result['risk_tier'],
+                autonomy_level=result['autonomy_level'],
                 ownership_team=result['ownership_team'],
-                registered_at=result['registered_at'],
+                governance_tags=result['governance_tags'] or [],
+                created_at=result['created_at'],
                 updated_at=result['updated_at']
             )
         return None
     
     def fetch_from_registry_suspended(self, agent_id: str) -> Optional[RegistryRecord]:
         query = """
-            SELECT agent_id, tenant_id, environment, ownership_team,
-                   registered_at, updated_at
+            SELECT agent_id, tenant_id, name, type, purpose, role, status,
+                   risk_tier, autonomy_level, ownership_team, governance_tags,
+                   created_at, updated_at
             FROM agents
             WHERE agent_id = %s AND status = 'suspended'
         """
         result = self._execute(query, (agent_id,))
         if result:
             return RegistryRecord(
-                agent_id=result['agent_id'],
+                agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
-                environment=result['environment'],
+                name=result['name'],
+                environment=None,
+                type=result['type'],
+                purpose=result['purpose'],
+                role=result['role'],
+                status=result['status'],
+                risk_tier=result['risk_tier'],
+                autonomy_level=result['autonomy_level'],
                 ownership_team=result['ownership_team'],
-                registered_at=result['registered_at'],
+                governance_tags=result['governance_tags'] or [],
+                created_at=result['created_at'],
                 updated_at=result['updated_at']
             )
         return None
     
     def fetch_from_registry_disabled(self, agent_id: str) -> Optional[RegistryRecord]:
         query = """
-            SELECT agent_id, tenant_id, environment, ownership_team,
-                   registered_at, updated_at
+            SELECT agent_id, tenant_id, name, type, purpose, role, status,
+                   risk_tier, autonomy_level, ownership_team, governance_tags,
+                   created_at, updated_at
             FROM agents
             WHERE agent_id = %s AND status = 'disabled'
         """
         result = self._execute(query, (agent_id,))
         if result:
             return RegistryRecord(
-                agent_id=result['agent_id'],
+                agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
-                environment=result['environment'],
+                name=result['name'],
+                environment=None,
+                type=result['type'],
+                purpose=result['purpose'],
+                role=result['role'],
+                status=result['status'],
+                risk_tier=result['risk_tier'],
+                autonomy_level=result['autonomy_level'],
                 ownership_team=result['ownership_team'],
-                registered_at=result['registered_at'],
+                governance_tags=result['governance_tags'] or [],
+                created_at=result['created_at'],
                 updated_at=result['updated_at']
             )
         return None
     
     def fetch_from_registry_pending(self, agent_id: str) -> Optional[RegistryRecord]:
         query = """
-            SELECT agent_id, tenant_id, environment, ownership_team,
-                   registered_at, updated_at
+            SELECT agent_id, tenant_id, name, type, purpose, role, status,
+                   risk_tier, autonomy_level, ownership_team, governance_tags,
+                   created_at, updated_at
             FROM agents
             WHERE agent_id = %s AND status = 'pending'
         """
         result = self._execute(query, (agent_id,))
         if result:
             return RegistryRecord(
-                agent_id=result['agent_id'],
+                agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
-                environment=result['environment'],
+                name=result['name'],
+                environment=None,
+                type=result['type'],
+                purpose=result['purpose'],
+                role=result['role'],
+                status=result['status'],
+                risk_tier=result['risk_tier'],
+                autonomy_level=result['autonomy_level'],
                 ownership_team=result['ownership_team'],
-                registered_at=result['registered_at'],
+                governance_tags=result['governance_tags'] or [],
+                created_at=result['created_at'],
                 updated_at=result['updated_at']
             )
         return None
     
     def fetch_agent_metadata(self, agent_id: str) -> Optional[AgentMetadata]:
         query = """
-            SELECT agent_id, role, risk_tier, autonomy_level,
-                   allowed_tools, capabilities, governance_tags, updated_at
+            SELECT agent_id, name, role, risk_tier, autonomy_level,
+                   governance_tags, updated_at
             FROM agents
             WHERE agent_id = %s AND status = 'active'
         """
         result = self._execute(query, (agent_id,))
         if result:
             return AgentMetadata(
-                agent_id=result['agent_id'],
-                role=result['role'],
-                risk_tier=result['risk_tier'],
-                autonomy_level=result['autonomy_level'],
-                allowed_tools=result['allowed_tools'] or [],
-                capabilities=result['capabilities'] or [],
+                agent_id=str(result['agent_id']),
+                name=result['name'],
+                role=result['role'] or '',
+                risk_tier=result['risk_tier'] or 'low',
+                autonomy_level=result['autonomy_level'] or 'read_only',
+                allowed_tools=[],
+                capabilities=[],
                 governance_tags=result['governance_tags'] or [],
                 updated_at=result['updated_at']
             )

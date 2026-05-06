@@ -48,16 +48,24 @@ def create_registry_record(data):
     return RegistryRecord(
         agent_id=data["agent_id"],
         tenant_id=data["tenant_id"],
-        environment=data["environment"],
-        ownership_team=data["ownership_team"],
-        registered_at=parse_dt(data["registered_at"]),
-        updated_at=parse_dt(data["updated_at"])
+        name=data.get("name", "Test Agent"),
+        type=data.get("type"),
+        purpose=data.get("purpose"),
+        role=data.get("role"),
+        status=data.get("status", "active"),
+        risk_tier=data.get("risk_tier"),
+        autonomy_level=data.get("autonomy_level"),
+        ownership_team=data.get("ownership_team"),
+        governance_tags=data.get("governance_tags", []),
+        created_at=parse_dt(data.get("created_at", "2024-01-01T00:00:00Z")),
+        updated_at=parse_dt(data.get("updated_at", "2024-01-01T00:00:00Z"))
     )
 
 
 def create_metadata(agent_id, data):
     return AgentMetadata(
         agent_id=agent_id,
+        name=data.get("name", "Test Agent"),
         role=data["role"],
         risk_tier=data["risk_tier"],
         autonomy_level=data["autonomy_level"],
