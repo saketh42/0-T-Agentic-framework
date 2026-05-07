@@ -5,16 +5,16 @@ Validates incoming request payload from Gateway.
 """
 
 from typing import Dict, Any, Optional, Tuple
-from schemas import IdentityRequest, FinalResponse
+from schemas import IdentityValidationRequest, IdentityValidationResponse
 
 
-def validate_identity_request(request_payload: Dict[str, Any]) -> Tuple[Optional[IdentityRequest], Optional[FinalResponse]]:
+def validate_identity_validation_request(request_payload: Dict[str, Any]) -> Tuple[Optional[IdentityValidationRequest], Optional[IdentityValidationResponse]]:
     """
     Validates the incoming request payload.
     
     Returns:
         (IdentityRequest, None) on success
-        (None, FinalResponse) on failure
+        (None, IdentityValidationResponse) on failure
     """
     print("\n" + "="*60)
     print(" STEP 1: VALIDATE REQUEST")
@@ -22,7 +22,7 @@ def validate_identity_request(request_payload: Dict[str, Any]) -> Tuple[Optional
     print(f"\n   Input payload: {request_payload}")
     
     if not request_payload:
-        error = FinalResponse(
+        error = IdentityValidationResponse(
             is_authorized=False,
             failure_reason="Empty request payload"
         )
@@ -30,7 +30,7 @@ def validate_identity_request(request_payload: Dict[str, Any]) -> Tuple[Optional
         return None, error
     
     try:
-        request = IdentityRequest(**request_payload)
+        request = IdentityValidationRequest(**request_payload)
         print("    Request parsed successfully")
         print(f"    agent_id: {request.agent_id}")
         print(f"    tenant_id: {request.tenant_id}")
@@ -38,7 +38,7 @@ def validate_identity_request(request_payload: Dict[str, Any]) -> Tuple[Optional
         return request, None
         
     except Exception as e:
-        error = FinalResponse(
+        error = IdentityValidationResponse(
             is_authorized=False,
             failure_reason=f"Invalid request payload: {str(e)}"
         )
@@ -46,12 +46,12 @@ def validate_identity_request(request_payload: Dict[str, Any]) -> Tuple[Optional
         return None, error
 
 
-def validate_required_request_fields(request: IdentityRequest) -> Optional[FinalResponse]:
+def validate_required_request_fields(request: IdentityValidationRequest) -> Optional[IdentityValidationResponse]:
     """Validate required fields are not empty."""
     print("\n   Validating required fields...")
     
     if not request.agent_id or not request.agent_id.strip():
-        error = FinalResponse(
+        error = IdentityValidationResponse(
             is_authorized=False,
             failure_reason="Invalid request: agent_id is required"
         )
@@ -59,7 +59,7 @@ def validate_required_request_fields(request: IdentityRequest) -> Optional[Final
         return error
     
     if not request.tenant_id or not request.tenant_id.strip():
-        error = FinalResponse(
+        error = IdentityValidationResponse(
             is_authorized=False,
             failure_reason="Invalid request: tenant_id is required"
         )
@@ -67,7 +67,7 @@ def validate_required_request_fields(request: IdentityRequest) -> Optional[Final
         return error
     
     if not request.environment or not request.environment.strip():
-        error = FinalResponse(
+        error = IdentityValidationResponse(
             is_authorized=False,
             failure_reason="Invalid request: environment is required"
         )

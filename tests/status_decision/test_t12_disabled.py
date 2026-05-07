@@ -1,12 +1,12 @@
 """T12: Disabled agent denied"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from identity_agent import identity_agent_service
 
 
 def test_disabled_agent(test_inputs, mock_db_disabled):
     payload = test_inputs["disabled_agent"]
-    result = identity_agent_flow(payload, mock_db_disabled)
+    result = identity_agent_service(payload, mock_db_disabled)
 
-    assert result.success is False
-    assert "disabled" in result.error_message.lower()
+    assert result.is_authorized is False
+    assert "disabled" in result.failure_reason.lower()

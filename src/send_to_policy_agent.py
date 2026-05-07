@@ -1,24 +1,24 @@
 """
-Step 6: Send to Policy Agent
+Step 6: Send to Gateway
 
-Sends the decision context to the Policy Agent for authorization.
+Sends the decision context to the Gateway for authorization.
 """
 
 from typing import Optional, Tuple
 from schemas import (
-    IdentityRequest,
-    IdentityDecisionContext,
-    AuditLogEvent,
-    FinalResponse
+    IdentityValidationRequest,
+    AgentIdentityDecisionContext,
+    IdentityAgentAuditLogEvent,
+    IdentityValidationResponse
 )
 import uuid
 from datetime import datetime
 
 
-def submit_to_gateway(
-    request: IdentityRequest,
-    decision_context: IdentityDecisionContext
-) -> Tuple[Optional[AuditLogEvent], Optional[FinalResponse]]:
+def submit_decision_context_to_gateway(
+    request: IdentityValidationRequest,
+    decision_context: AgentIdentityDecisionContext
+) -> Tuple[Optional[IdentityAgentAuditLogEvent], Optional[IdentityValidationResponse]]:
     """
     Sends the decision context to the Policy Agent.
     
@@ -27,7 +27,7 @@ def submit_to_gateway(
     
     Returns:
         (AuditLogEvent, None) on success
-        (None, FinalResponse) on failure
+        (None, IdentityValidationResponse) on failure
     """
     print("\n" + "="*60)
     print(" STEP 6: SEND TO POLICY AGENT")
@@ -52,8 +52,8 @@ def submit_to_gateway(
     print(f"         - capabilities: {decision_context.metadata.capabilities}")
     print(f"         - governance_tags: {decision_context.metadata.governance_tags}")
     
-    # STUB: In production, this would make an API call to Policy Agent
-    # For now, we assume Policy Agent returns ALLOW for all active agents
+    # STUB: In production, this would make an API call to Gateway
+    # For now, we assume Gateway returns ALLOW for all active agents
     policy_decision = "ALLOW"
     policy_reason = "Agent is active and identity validated successfully"
     
@@ -61,7 +61,7 @@ def submit_to_gateway(
     print(f"    Reason: {policy_reason}")
     
     # Create audit log
-    audit_log = AuditLogEvent(
+    audit_log = IdentityAgentAuditLogEvent(
         event_id=str(uuid.uuid4()),
         timestamp=datetime.utcnow(),
         agent_id=request.agent_id,
@@ -80,9 +80,9 @@ def submit_to_gateway(
     return audit_log, None
 
 
-def create_allow_audit_log(request: IdentityRequest, reason: str) -> AuditLogEvent:
+def create_identity_allow_audit_log(request: IdentityValidationRequest, reason: str) -> IdentityAgentAuditLogEvent:
     """Create an allow audit log."""
-    audit_log = AuditLogEvent(
+    audit_log = IdentityAgentAuditLogEvent(
         event_id=str(uuid.uuid4()),
         timestamp=datetime.utcnow(),
         agent_id=request.agent_id,

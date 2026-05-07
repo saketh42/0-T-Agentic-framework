@@ -5,21 +5,21 @@ Wires all steps together in the correct sequence.
 """
 
 from typing import Dict, Any, Optional
-from schemas import FinalResponse
+from schemas import IdentityValidationResponse
 
-from validate_request import validate_identity_request, validate_required_request_fields
-from connect_db import establish_database_connection
-from check_registry import lookup_agent_in_registry
-from fetch_metadata import fetch_agent_metadata
+from validate_request import validate_identity_validation_request, validate_required_request_fields
+from connect_db import establish_identity_agent_db_connection
+from check_registry import lookup_agent_in_identity_registry, create_identity_deny_audit_log
+from fetch_metadata import fetch_agent_security_metadata
 from build_decision_context import build_identity_decision_context
-from send_to_policy_agent import submit_to_gateway, create_allow_audit_log
+from send_to_policy_agent import submit_decision_context_to_gateway, create_identity_allow_audit_log
 
 
 def identity_agent_service(
     request_payload: Dict[str, Any],
     db_client=None,
     stm_client=None
-) -> FinalResponse:
+) -> IdentityValidationResponse:
     """
     Identity & Context Service - Main entry point.
     
@@ -40,7 +40,7 @@ def identity_agent_service(
     
     # Step 1: Validate Request
     print("\n>>> Step 1: Validate Request")
-    request, error = validate_identity_request(request_payload)
+    request, error = validate_identity_validation_request(request_payload)
     if error:
         print("    Step 1 FAILED")
         return error
@@ -53,7 +53,7 @@ def identity_agent_service(
     
     # Step 2: Connect to Database
     print("\n>>> Step 2: Connect to Database")
-    db, db_error = establish_database_connection(db_client)
+    db, db_error = establish_identity_agent_db_connection(db_client)
     if db_error:
         print("   [FAIL] Step 2 FAILED")
         return db_error
@@ -61,7 +61,7 @@ def identity_agent_service(
     
     # Step 3: Lookup Agent in Registry
     print("\n>>> Step 3: Lookup Agent in Registry")
-    registry_record, status, reg_error, deny_audit = lookup_agent_in_registry(request, db)
+    registry_record, status, reg_error, deny_audit = lookup_agent_in_identity_registry(request, db)
     if reg_error:
         # Write deny audit log
         try:
@@ -70,16 +70,16 @@ def identity_agent_service(
         except Exception as e:
             print(f"   [WARN] Failed to write audit log: {e}")
         print("   [FAIL] Step 3 FAILED")
-        return FinalResponse(
+        return IdentityValidationResponse(
             is_authorized=False,
-            failure_reason=reg_error.error_message,
+            failure_reason=reg_error.failure_reason,
             audit_log_id=deny_audit.event_id
         )
     print("   [PASS] Step 3 PASSED")
     
     # Step 4: Fetch Agent Metadata
     print("\n>>> Step 4: Fetch Agent Metadata")
-    metadata, meta_error = fetch_agent_metadata(request.agent_id, db)
+    metadata, meta_error = fetch_agent_security_metadata(request.agent_id, db)
     if meta_error:
         print("   [FAIL] Step 4 FAILED")
         return meta_error
@@ -105,8 +105,8 @@ def identity_agent_service(
     
     # Step 6: Submit to Gateway
     print("\n>>> Step 6: Submit to Gateway")
-    allow_audit, policy_error = submit_to_gateway(request, decision_context)
-    if policy_error:
+    allow_audit, gateway_error = submit_decision_context_to_gateway(request, decision_context)
+    if gateway_error:
         print("   [FAIL] Step 6 FAILED")
         return policy_error
     
@@ -120,8 +120,8 @@ def identity_agent_service(
     print("[PASS] IDENTITY SERVICE COMPLETED - SUCCESS")
     print("="*60)
     
-    return FinalResponse(
+    return IdentityValidationResponse(
         is_authorized=True,
         identity_context=decision_context,
-        audit_log_id=None  # No audit log for success - goes to Policy Agent
+        audit_log_id=None  # No audit log for success - goes to Gateway
     )

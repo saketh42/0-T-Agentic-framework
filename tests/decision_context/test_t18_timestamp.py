@@ -1,11 +1,11 @@
 """T18: Decision context has timestamp"""
 
 import pytest
-from identity_agent import identity_agent_flow
+from identity_agent import identity_agent_service
 
 
-def test_decision_context_timestamp(test_inputs, mock_db_active):
+def test_identity_context_timestamp(test_inputs, mock_db_active):
     payload = test_inputs["valid_request"]
-    result = identity_agent_flow(payload, mock_db_active)
+    result = identity_agent_service(payload, mock_db_active)
 
-    assert result.decision_context.timestamp is not None
+    assert result.identity_context.timestamp is not None

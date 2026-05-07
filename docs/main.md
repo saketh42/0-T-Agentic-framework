@@ -3,13 +3,13 @@
 
 # Agentic Cyber Security Platform Architecture
 
-*(Zero Trust Gateway, Policy Agent, Memory Spine, HIL, and Personas)*
+*(Zero Trust Gateway, Gateway, Memory Spine, HIL, and Personas)*
 
 ---
 
 # 1. Purpose and Scope
 
-This document defines the end to end architecture for an agentic cyber security platform that uses a Security & Privacy Gateway, Policy Agent, and a shared memory & knowledge spine to secure multi agent workflows. The scope includes:
+This document defines the end to end architecture for an agentic cyber security platform that uses a Security & Privacy Gateway, Gateway, and a shared memory & knowledge spine to secure multi agent workflows. The scope includes:
 
 • Human personas (SOC, IR, governance, engineering).
 • Agent libraries and orchestrator.
@@ -118,7 +118,7 @@ From top to bottom, the system is structured into five layers:
 │                   Security & Privacy Gateway                        │
 │                                                                     │
 │   • Identity & Context Service                                      │
-│   • Policy Agent (ABAC + risk)                                      │
+│   • Gateway (ABAC + risk)                                      │
 │   • Privacy / DLP Agent                                             │
 │   • Audit Logchain & Metrics                                        │
 │                                                                     │
@@ -237,7 +237,7 @@ This pattern keeps decision traces clear and enables zero trust checks at each s
 
 • No/low code interface for governance users to define and edit:
 
-• Policy rules consumed by the Policy Agent.
+• Policy rules consumed by the Gateway.
 • Runbooks used by Planner and worker agents.
 
 • Integrated test harness:
@@ -248,7 +248,7 @@ This pattern keeps decision traces clear and enables zero trust checks at each s
 
 ## 5.4 Approval & override console
 
-• Shows all escalate decisions from Policy Agent (e.g., high risk actions or plans).
+• Shows all escalate decisions from Gateway (e.g., high risk actions or plans).
 
 • IR/GOV can:
 
@@ -267,7 +267,7 @@ This pattern keeps decision traces clear and enables zero trust checks at each s
 
 ---
 
-# 6. Security & Privacy Gateway and Policy Agent
+# 6. Security & Privacy Gateway and Gateway
 
 ## 6.1 Identity & Context Service
 
@@ -281,7 +281,7 @@ This pattern keeps decision traces clear and enables zero trust checks at each s
 
 ---
 
-## 6.2 Policy Agent
+## 6.2 Gateway
 
 • ABAC style policy as code engine acting as Policy Decision Point (PDP):
 
@@ -307,7 +307,7 @@ This pattern keeps decision traces clear and enables zero trust checks at each s
 • Masking/sanitization on inputs and outputs that cross trust boundaries.
 • Checks before writing to LTM/KG/Twin or external tools.
 
-• Outputs classification and recommended actions to Policy Agent as attributes.
+• Outputs classification and recommended actions to Gateway as attributes.
 
 ---
 
@@ -377,7 +377,7 @@ This pattern keeps decision traces clear and enables zero trust checks at each s
 
 • Data classification and retention policies (no raw credentials, bounded PII, etc.).
 
-• All writes pass through Gateway DLP and Policy Agent.
+• All writes pass through Gateway DLP and Gateway.
 
 ---
 
@@ -449,7 +449,7 @@ All access to these systems is mediated by tool adapters that call the Gateway f
 
 • DLP classifies any data referenced in plan.
 
-• Policy Agent evaluates plan level rules; may require human approval.
+• Gateway evaluates plan level rules; may require human approval.
 
 • Decision is logged to logchain; if escalate, appears in Approval console.
 

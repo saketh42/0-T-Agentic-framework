@@ -7,7 +7,7 @@ Usage: python3 run.py
 import sys
 sys.path.insert(0, 'core')
 
-from postgres_client import PostgresDatabaseClient
+from postgres_client import PostgresIdentityAgentDatabaseClient
 from identity_agent import identity_agent_service
 
 
@@ -16,7 +16,7 @@ def main():
     print(" IDENTITY AGENT - Interactive Testing")
     print("="*60 + "\n")
     
-    db = PostgresDatabaseClient()
+    db = PostgresIdentityAgentDatabaseClient()
     
     agents = [
         ("1", "agent-001", "Active Agent"),

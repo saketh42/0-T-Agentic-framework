@@ -5,30 +5,30 @@ Fetches the agent's metadata from the database.
 """
 
 from typing import Optional, Tuple
-from database import DatabaseClient
-from schemas import IdentityRequest, RegistryRecord, AgentMetadata, FinalResponse
+from database import IdentityAgentDatabaseClient
+from schemas import IdentityValidationRequest, AgentRegistryRecord, AgentSecurityMetadata, IdentityValidationResponse
 
 
-def fetch_agent_metadata(
+def fetch_agent_security_metadata(
     agent_id: str,
-    db_client: DatabaseClient
-) -> Tuple[Optional[AgentMetadata], Optional[FinalResponse]]:
+    db_client: IdentityAgentDatabaseClient
+) -> Tuple[Optional[AgentSecurityMetadata], Optional[IdentityValidationResponse]]:
     """
     Fetches the agent's metadata from the database.
     
     Returns:
-        (AgentMetadata, None) on success
-        (None, FinalResponse) on failure
+        (AgentSecurityMetadata, None) on success
+        (None, IdentityValidationResponse) on failure
     """
     print("\n" + "="*60)
     print(" STEP 4: FETCH METADATA")
     print("="*60)
     print(f"\n   Fetching metadata for: {agent_id}")
     
-    metadata = db_client.fetch_agent_metadata(agent_id)
+    metadata = db_client.fetch_agent_security_metadata(agent_id)
     
     if not metadata:
-        error = FinalResponse(
+        error = IdentityValidationResponse(
             is_authorized=False,
             failure_reason=f"Missing metadata in DB for agent {agent_id}"
         )

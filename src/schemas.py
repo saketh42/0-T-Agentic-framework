@@ -7,7 +7,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class IdentityRequest(BaseModel):
+class IdentityValidationRequest(BaseModel):
     agent_id: str
     tenant_id: str
     environment: str
@@ -16,7 +16,7 @@ class IdentityRequest(BaseModel):
     network_zone: str
 
 
-class RegistryRecord(BaseModel):
+class AgentRegistryRecord(BaseModel):
     agent_id: str
     tenant_id: str
     name: str
@@ -33,7 +33,7 @@ class RegistryRecord(BaseModel):
     updated_at: Optional[datetime] = None
 
 
-class AgentMetadata(BaseModel):
+class AgentSecurityMetadata(BaseModel):
     agent_id: str
     name: str
     role: str
@@ -45,7 +45,7 @@ class AgentMetadata(BaseModel):
     updated_at: Optional[datetime] = None
 
 
-class AuditLogEvent(BaseModel):
+class IdentityAgentAuditLogEvent(BaseModel):
     event_id: str
     timestamp: datetime
     agent_id: str
@@ -61,26 +61,26 @@ class AuditLogEvent(BaseModel):
     tamper_proof_ref: Optional[str] = None
 
 
-class IdentityDecisionContext(BaseModel):
+class AgentIdentityDecisionContext(BaseModel):
     agent_id: str
     tenant_id: str
     environment: str
     network_zone: str
     origin: str
     session_id: str
-    metadata: AgentMetadata
+    metadata: AgentSecurityMetadata
     status: str
     timestamp: datetime
 
 
-class FinalResponse(BaseModel):
+class IdentityValidationResponse(BaseModel):
     is_authorized: bool
-    identity_context: Optional[IdentityDecisionContext] = None
+    identity_context: Optional[AgentIdentityDecisionContext] = None
     audit_log_id: Optional[str] = None
     failure_reason: Optional[str] = None
 
 
-class STMSession(BaseModel):
+class AgentShortTermMemorySession(BaseModel):
     session_id: str
     agent_id: str
     tenant_id: str

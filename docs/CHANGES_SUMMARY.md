@@ -13,12 +13,12 @@ All functions were renamed to better reflect their actual purpose in the system 
 | Original Function | New Function | File | Reason |
 |------------------|--------------|------|--------|
 | `identity_agent_flow()` | `identity_agent_service()` | `src/identity_agent.py` | Aligns with "Identity & Context Service" (main.md:272) |
-| `send_to_policy_agent()` | `submit_to_gateway()` | `src/send_to_policy_agent.py` | Correctly reflects submission to Gateway, not Policy Agent (main.md:125) |
-| `check_registry()` | `lookup_agent_in_registry()` | `src/check_registry.py` | More descriptive of actual action |
-| `fetch_metadata()` | `fetch_agent_metadata()` | `src/fetch_metadata.py` | More specific to agent context |
-| `validate_request()` | `validate_identity_request()` | `src/validate_request.py` | Distinguishes from other request types |
+| `send_to_policy_agent()` | `submit_decision_context_to_gateway()` | `src/send_to_policy_agent.py` | Correctly reflects submission to Gateway, not Gateway (main.md:125) |
+| `check_registry()` | `lookup_agent_in_identity_registry()` | `src/check_registry.py` | More descriptive of actual action |
+| `fetch_metadata()` | `fetch_agent_security_metadata()` | `src/fetch_metadata.py` | More specific to agent context |
+| `validate_request()` | `validate_identity_validation_request()` | `src/validate_request.py` | Distinguishes from other request types |
 | `validate_required_fields()` | `validate_required_request_fields()` | `src/validate_request.py` | Consistent naming convention |
-| `connect_to_database()` | `establish_database_connection()` | `src/connect_db.py` | Clearer action verb |
+| `connect_to_database()` | `establish_identity_agent_db_connection()` | `src/connect_db.py` | Clearer action verb |
 | `build_decision_context()` | `build_identity_decision_context()` | `src/build_decision_context.py` | More specific to identity context |
 
 ---
@@ -59,9 +59,9 @@ Removed all 74+ emojis across 9 files and replaced them with descriptive text ta
 
 ---
 
-## 3. FinalResponse Schema Update
+## 3. IdentityValidationResponse Schema Update
 
-Updated the `FinalResponse` schema in `src/schemas.py` to use more descriptive field names.
+Updated the `IdentityValidationResponse` schema in `src/schemas.py` to use more descriptive field names.
 
 | Original Field | New Field | Reason |
 |----------------|-----------|--------|
@@ -89,15 +89,15 @@ Added STM capability as described in architecture document (section 7.1).
 ### New Files Created
 
 1. **`src/stm.py`** - Abstract interface for STM operations
-   - Defines `STMClient` abstract base class
+   - Defines `AgentShortTermMemoryClient` abstract base class
    - Methods: `create_session()`, `get_session()`, `update_plan()`, `add_intermediate_step()`, `add_tool_output()`, `update_flags()`, `delete_session()`, `extend_ttl()`
 
 2. **`src/stm_redis_client.py`** - Redis implementation
-   - Implements `STMClient` interface
+   - Implements `AgentShortTermMemoryClient` interface
    - Configuration via environment variables: `REDIS_HOST`, `REDIS_PORT`, `STM_TTL`
    - Default TTL: 1800 seconds (30 minutes)
 
-3. **`src/schemas.py`** - Added `STMSession` schema
+3. **`src/schemas.py`** - Added `AgentShortTermMemorySession` schema
    - Fields: `session_id`, `agent_id`, `tenant_id`, `current_goal`, `current_plan`, `intermediate_steps`, `recent_tool_outputs`, `flags`, `last_updated`
 
 ### Integration Points
@@ -121,16 +121,16 @@ redis>=5.0.0
 
 | File | Changes |
 |------|---------|
-| `src/identity_agent.py` | Renamed function, updated imports/calls, removed emojis, updated FinalResponse fields |
-| `src/validate_request.py` | Renamed functions, removed emojis, updated FinalResponse fields |
-| `src/connect_db.py` | Renamed function, removed emojis, updated FinalResponse fields |
-| `src/check_registry.py` | Renamed function, removed emojis, updated FinalResponse fields |
-| `src/fetch_metadata.py` | Renamed function, removed emojis, updated FinalResponse fields |
+| `src/identity_agent.py` | Renamed function, updated imports/calls, removed emojis, updated IdentityValidationResponse fields |
+| `src/validate_request.py` | Renamed functions, removed emojis, updated IdentityValidationResponse fields |
+| `src/connect_db.py` | Renamed function, removed emojis, updated IdentityValidationResponse fields |
+| `src/check_registry.py` | Renamed function, removed emojis, updated IdentityValidationResponse fields |
+| `src/fetch_metadata.py` | Renamed function, removed emojis, updated IdentityValidationResponse fields |
 | `src/build_decision_context.py` | Renamed function, removed emojis, fixed spelling ("BUID" → "BUILD") |
 | `src/send_to_policy_agent.py` | Renamed function, removed emojis |
-| `src/identity_agent_driver.py` | Updated imports/calls, removed emojis, updated FinalResponse fields |
-| `src/run.py` | Updated imports/calls, removed emojis, updated FinalResponse fields |
-| `src/schemas.py` | Updated FinalResponse fields, added STMSession schema |
+| `src/identity_agent_driver.py` | Updated imports/calls, removed emojis, updated IdentityValidationResponse fields |
+| `src/run.py` | Updated imports/calls, removed emojis, updated IdentityValidationResponse fields |
+| `src/schemas.py` | Updated IdentityValidationResponse fields, added AgentShortTermMemorySession schema |
 | `src/requirements.txt` | Added redis>=5.0.0 |
 | `src/stm.py` | NEW: STM abstract interface |
 | `src/stm_redis_client.py` | NEW: Redis implementation |
@@ -143,21 +143,21 @@ redis>=5.0.0
 
 **Commit Message:**
 ```
-Refactor: Rename functions for clarity, remove emojis, update FinalResponse schema
+Refactor: Rename functions for clarity, remove emojis, update IdentityValidationResponse schema
 
 - Rename identity_agent_flow → identity_agent_service
-- Rename send_to_policy_agent → submit_to_gateway (reflects actual Gateway endpoint)
-- Rename check_registry → lookup_agent_in_registry
-- Rename fetch_metadata → fetch_agent_metadata
-- Rename validate_request → validate_identity_request
+- Rename send_to_policy_agent → submit_decision_context_to_gateway (reflects actual Gateway endpoint)
+- Rename check_registry → lookup_agent_in_identity_registry
+- Rename fetch_metadata → fetch_agent_security_metadata
+- Rename validate_request → validate_identity_validation_request
 - Rename validate_required_fields → validate_required_request_fields
-- Rename connect_to_database → establish_database_connection
+- Rename connect_to_database → establish_identity_agent_db_connection
 - Rename build_decision_context → build_identity_decision_context
 - Remove all 74+ emojis, replace with text tags [PASS]/[FAIL]/[WARN]/[AUDIT] etc.
-- Update FinalResponse schema: success→is_authorized, decision_context→identity_context, 
+- Update IdentityValidationResponse schema: success→is_authorized, decision_context→identity_context, 
   audit_event_id→audit_log_id, error_message→failure_reason
 - Add STM (Short-Term Memory) integration with Redis backend
-- Add STMSession schema and STMClient interface
+- Add AgentShortTermMemorySession schema and AgentShortTermMemoryClient interface
 - Update requirements.txt with redis>=5.0.0
 ```
 
@@ -170,7 +170,7 @@ Refactor: Rename functions for clarity, remove emojis, update FinalResponse sche
 These changes align the codebase with the architecture specification in `docs/main.md`:
 
 - **Section 6.1**: "Identity & Context Service" - Function renamed to `identity_agent_service()`
-- **Section 6.2**: Gateway endpoints - Function renamed to `submit_to_gateway()`
+- **Section 6.2**: Gateway endpoints - Function renamed to `submit_decision_context_to_gateway()`
 - **Section 7.1**: STM specification - Redis-backed, 30min TTL, per-session
 - **Section 4.2**: Agent libraries & orchestration - Clear function names for maintainability
 

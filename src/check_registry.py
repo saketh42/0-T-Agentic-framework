@@ -5,22 +5,22 @@ Checks the agent registry for the agent and validates tenant/environment.
 """
 
 from typing import Optional, Tuple
-from database import DatabaseClient
-from schemas import IdentityRequest, RegistryRecord, FinalResponse, AuditLogEvent
+from database import IdentityAgentDatabaseClient
+from schemas import IdentityValidationRequest, AgentRegistryRecord, IdentityValidationResponse, IdentityAgentAuditLogEvent
 import uuid
 from datetime import datetime
 
 
-def lookup_agent_in_registry(
-    request: IdentityRequest,
-    db_client: DatabaseClient
-) -> Tuple[Optional[RegistryRecord], Optional[str], Optional[FinalResponse], Optional[AuditLogEvent]]:
+def lookup_agent_in_identity_registry(
+    request: IdentityValidationRequest,
+    db_client: IdentityAgentDatabaseClient
+) -> Tuple[Optional[AgentRegistryRecord], Optional[str], Optional[IdentityValidationResponse], Optional[IdentityAgentAuditLogEvent]]:
     """
     Checks the agent registry for the agent.
     
     Returns:
-        (RegistryRecord, status, None, audit_log) on success
-        (None, None, FinalResponse, audit_log) on failure
+        (AgentRegistryRecord, status, None, audit_log) on success
+        (None, None, IdentityValidationResponse, audit_log) on failure
     """
     print("\n" + "="*60)
     print(" STEP 3: CHECK REGISTRY")
@@ -73,8 +73,8 @@ def lookup_agent_in_registry(
     if not registry_record:
         print(f"    Agent not found: {request.agent_id}")
         error_msg = f"Unknown agent: {request.agent_id} for tenant={request.tenant_id}, environment={request.environment}"
-        audit_log = create_deny_audit_log(request, error_msg)
-        error = FinalResponse(is_authorized=False, failure_reason=error_msg)
+        audit_log = create_identity_deny_audit_log(request, error_msg)
+        error = IdentityValidationResponse(is_authorized=False, failure_reason=error_msg)
         return None, None, error, audit_log
     
     print(f"\n   Status: {found_status}")
@@ -86,8 +86,8 @@ def lookup_agent_in_registry(
         print(f"      - Request tenant: {request.tenant_id}")
         print(f"      - Registry tenant: {registry_record.tenant_id}")
         error_msg = "Cross-tenant access attempt detected"
-        audit_log = create_deny_audit_log(request, error_msg)
-        error = FinalResponse(is_authorized=False, failure_reason=error_msg)
+        audit_log = create_identity_deny_audit_log(request, error_msg)
+        error = IdentityValidationResponse(is_authorized=False, failure_reason=error_msg)
         return None, None, error, audit_log
     print("    Tenant matches")
     
@@ -95,8 +95,8 @@ def lookup_agent_in_registry(
     if found_status != "active":
         print(f"\n    Agent is {found_status}, not active")
         error_msg = f"Agent {request.agent_id} is not active. Current status: {found_status}"
-        audit_log = create_deny_audit_log(request, error_msg)
-        error = FinalResponse(is_authorized=False, failure_reason=error_msg, audit_log_id=audit_log.event_id)
+        audit_log = create_identity_deny_audit_log(request, error_msg)
+        error = IdentityValidationResponse(is_authorized=False, failure_reason=error_msg, audit_log_id=audit_log.event_id)
         return None, None, error, audit_log
     
     print("\n    Agent is active and authorized")
@@ -104,9 +104,9 @@ def lookup_agent_in_registry(
     return registry_record, found_status, None, audit_log
 
 
-def create_deny_audit_log(request: IdentityRequest, reason: str) -> AuditLogEvent:
+def create_identity_deny_audit_log(request: IdentityValidationRequest, reason: str) -> IdentityAgentAuditLogEvent:
     """Create a deny audit log."""
-    audit_log = AuditLogEvent(
+    audit_log = IdentityAgentAuditLogEvent(
         event_id=str(uuid.uuid4()),
         timestamp=datetime.utcnow(),
         agent_id=request.agent_id,

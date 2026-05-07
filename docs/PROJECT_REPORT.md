@@ -1,19 +1,6 @@
 # Identity Module - Scope and Phase 1 Status  
 
-## 1. Document Control 
-
-| Item | Details |
-|------|---------|
-| Project | Agentic AI Identity Module |
-| Component | Identity & Context Service |
-| Document Type | Scope, Architecture, Review, and Work-in-Progress Status Report |
-| Current Phase | Identity Coding in Progress |
-| Current Status | Architecture, pseudocode, and test cases finalized; coding review pending |
-| Prepared For | Project review and pending-work tracking |
-
----
-
-## 2. Scope 
+## 1. Scope 
 
 The Identity Module is responsible for validating agent identity and building decision context before gateway evaluation. It receives agent requests, validates registration status, and returns an authorized decision context or denial.
 
@@ -30,11 +17,6 @@ The Identity Module is responsible for validating agent identity and building de
 | Fail-closed behavior | Deny by default when agent is unknown or inactive |
 | Audit logging | Logs deny decisions to PostgreSQL database |
 
-### Out of Scope (for Phase 1)
-- Policy evaluation (handled by Policy Module)
-- Medium/Long-Term Memory (MTM/LTM) - future phases
-- Security Knowledge Graph - future phases
-- Digital Twin - future phases
 
 ---
 
@@ -52,17 +34,13 @@ Architecture review and pseudocode review have been completed and finalized. Tes
 | Registry lookup (4 status tables) | Completed |
 | Metadata fetching | Completed |
 | Decision context builder | Completed |
-| Gateway submission (submit_to_gateway) | Completed |
-| STM (Short-Term Memory) Redis client | Completed |
-| STM abstract interface | Completed |
+| Gateway submission (submit_decision_context_to_gateway) | Completed |
 | Architecture review | Reviewed and finalized |
 | Pseudocode documentation | Reviewed and finalized |
 | Test cases | Reviewed and finalized |
 | Unit test files | Completed |
-| Integration test files | Completed |
 | Function rename refactoring | Completed |
-| Emoji removal | Completed |
-| FinalResponse schema update | Completed |
+| IdentityValidationResponse schema update | Completed |
 
 ### Pending Work 
 
@@ -71,9 +49,12 @@ Architecture review and pseudocode review have been completed and finalized. Tes
 | Coding review | Pending |
 | Reviewer comments on coding | Pending |
 | STM unit tests | Pending |
+| STM (Short-Term Memory) Redis client | Pending |
+| STM abstract interface | Pending |
 | Gateway integration validation | Pending |
 | End-to-end integration testing | Pending |
 | Final sign-off | Not started |
+
 
 ---
 
@@ -94,7 +75,7 @@ The Identity Module must provide a centralized identity validation service that 
 | Build decision context with timestamp | Implemented |
 | Submit validated context to Gateway | Implemented |
 | Write audit log for DENY cases | Implemented |
-| Initialize STM session for authorized agents | Implemented |
+| Initialize STM session for authorized agents | Pending |
 | Fail-closed: deny if agent unknown or inactive | Implemented |
 
 ### Non-Functional Requirements 
@@ -102,12 +83,11 @@ The Identity Module must provide a centralized identity validation service that 
 | Requirement | Current Status |
 |--------------|---------------|
 | Zero Trust: authenticate, authorize, log every agent | Implemented |
-| STM with 30-minute TTL per architecture spec | Implemented |
 | Pydantic schemas for type validation | Implemented |
-| Abstract interfaces for database and STM | Implemented |
-| Graceful degradation (STM optional, Redis failure non-blocking) | Implemented |
-| Code clarity with descriptive function names | Implemented |
-| Production-ready logging (no emojis) | Implemented |
+| Abstract interfaces for database and STM | STM Pending |
+| Code clarity with descriptive function names | Pending |
+| STM with 30-minute TTL per architecture spec | Pending |
+| Logging | Pending |
 
 ---
 
@@ -121,18 +101,18 @@ Client / Agent
   v 
 Identity & Context Service (identity_agent_service)
   | 
-  +--> Validation Layer (validate_identity_request, validate_required_request_fields)
+  +--> Validation Layer (validate_identity_validation_request, validate_required_request_fields)
   | 
-  +--> Database Layer (establish_database_connection, lookup_agent_in_registry, fetch_agent_metadata)
+  +--> Database Layer (establish_identity_agent_db_connection, lookup_agent_in_identity_registry, fetch_agent_security_metadata)
   | 
   +--> Decision Context Builder (build_identity_decision_context)
   | 
-  +--> Gateway Submission (submit_to_gateway)
+  +--> Gateway Submission (submit_decision_context_to_gateway)
   | 
-  +--> STM Layer (create_session, update_plan, add_tool_output)
+  +--> STM Layer (create_session, update_plan)
   | 
   v 
-Gateway / Policy Agent 
+Gateway  
 ```
 
 ### File-Level Architecture 
@@ -140,16 +120,16 @@ Gateway / Policy Agent
 | File / Folder | Purpose |
 |---------------|---------|
 | `src/identity_agent.py` | Main orchestrator - identity_agent_service() function |
-| `src/validate_request.py` | Request validation (validate_identity_request, validate_required_request_fields) |
-| `src/connect_db.py` | Database connection (establish_database_connection) |
-| `src/check_registry.py` | Registry lookup (lookup_agent_in_registry) |
-| `src/fetch_metadata.py` | Metadata fetching (fetch_agent_metadata) |
+| `src/validate_request.py` | Request validation (validate_identity_validation_request, validate_required_request_fields) |
+| `src/connect_db.py` | Database connection (establish_identity_agent_db_connection) |
+| `src/check_registry.py` | Registry lookup (lookup_agent_in_identity_registry) |
+| `src/fetch_metadata.py` | Metadata fetching (fetch_agent_security_metadata) |
 | `src/build_decision_context.py` | Decision context builder (build_identity_decision_context) |
-| `src/send_to_policy_agent.py` | Gateway submission (submit_to_gateway) |
-| `src/schemas.py` | Pydantic models (IdentityRequest, RegistryRecord, AgentMetadata, FinalResponse, STMSession) |
-| `src/stm.py` | STM abstract interface (STMClient) |
-| `src/stm_redis_client.py` | Redis implementation (STMRedisClient) |
-| `src/database.py` | Database abstract interface (DatabaseClient) |
+| `src/send_to_policy_agent.py` | Gateway submission (submit_decision_context_to_gateway) |
+| `src/schemas.py` | Pydantic models (IdentityValidationRequest, AgentRegistryRecord, AgentSecurityMetadata, IdentityValidationResponse, AgentShortTermMemorySession) |
+| `src/stm.py` | STM abstract interface (AgentShortTermMemoryClient) |
+| `src/stm_redis_client.py` | Redis implementation (RedisAgentShortTermMemoryClient) |
+| `src/database.py` | Database abstract interface (IdentityAgentDatabaseClient) |
 | `src/postgres_client.py` | PostgreSQL implementation |
 | `src/identity_agent_driver.py` | CLI driver for PostgreSQL testing |
 | `src/run.py` | Interactive CLI for testing |
@@ -162,7 +142,7 @@ Gateway / Policy Agent
 ## 6. Execution Flow 
 
 1. Agent or client sends identity request to Identity Service.
-2. Request is parsed into IdentityRequest (Pydantic validation).
+2. Request is parsed into IdentityValidationRequest (Pydantic validation).
 3. Required fields are checked (agent_id, tenant_id, environment).
 4. Database connection is established.
 5. Agent is looked up in registry across all status tables.
@@ -183,31 +163,31 @@ Gateway / Policy Agent
 START identity_agent_service(request_payload, db_client, stm_client)
  
   // Step 1: Validate Request
-  request, error = validate_identity_request(request_payload)
+  request, error = validate_identity_validation_request(request_payload)
   IF error:
-    RETURN FinalResponse(is_authorized=False, failure_reason=error)
+    RETURN IdentityValidationResponse(is_authorized=False, failure_reason=error)
   
   field_error = validate_required_request_fields(request)
   IF field_error:
     RETURN field_error
   
   // Step 2: Connect to Database
-  db, db_error = establish_database_connection(db_client)
+  db, db_error = establish_identity_agent_db_connection(db_client)
   IF db_error:
     RETURN db_error
   
   // Step 3: Lookup Agent in Registry
-  record, status, reg_error, deny_audit = lookup_agent_in_registry(request, db)
+  record, status, reg_error, deny_audit = lookup_agent_in_identity_registry(request, db)
   IF reg_error:
     db.write_audit_log(deny_audit)
-    RETURN FinalResponse(is_authorized=False, failure_reason=reg_error, audit_log_id=deny_audit.event_id)
+    RETURN IdentityValidationResponse(is_authorized=False, failure_reason=reg_error, audit_log_id=deny_audit.event_id)
   
   // Step 4: Fetch Agent Metadata
-  metadata, meta_error = fetch_agent_metadata(request.agent_id, db)
+  metadata, meta_error = fetch_agent_security_metadata(request.agent_id, db)
   IF meta_error:
     RETURN meta_error
   
-  // Optional: Initialize STM Session
+  // Initialize STM Session
   IF stm_client:
     TRY:
       stm_client.create_session(session_id, agent_id, tenant_id, "")
@@ -218,11 +198,11 @@ START identity_agent_service(request_payload, db_client, stm_client)
   decision_context = build_identity_decision_context(request, metadata, status)
   
   // Step 6: Submit to Gateway
-  allow_audit, policy_error = submit_to_gateway(request, decision_context)
+  allow_audit, policy_error = submit_decision_context_to_gateway(request, decision_context)
   IF policy_error:
     RETURN policy_error
   
-  RETURN FinalResponse(is_authorized=True, identity_context=decision_context)
+  RETURN IdentityValidationResponse(is_authorized=True, identity_context=decision_context)
 
 END
 ```
@@ -282,8 +262,8 @@ Unit test cases have been prepared, reviewed, and finalized for the core identit
 | Decision context builder | `src/build_decision_context.py` | Phase 1 completed |
 | Gateway submission | `src/send_to_policy_agent.py` | Phase 1 completed |
 | Schemas (Pydantic) | `src/schemas.py` | Phase 1 completed |
-| STM interface | `src/stm.py` | Phase 1 completed |
-| STM Redis client | `src/stm_redis_client.py` | Phase 1 completed |
+| STM interface | `src/stm.py` | Pending |
+| STM Redis client | `src/stm_redis_client.py` | Pending |
 | PostgreSQL client | `src/postgres_client.py` | Phase 1 completed |
 
 ---
@@ -298,33 +278,10 @@ This section is the single review tracker for the Identity Module. Architecture,
 | Architecture review | Finalized | Layered Identity Service architecture has been reviewed |
 | Pseudocode review | Finalized | Validation and decision flow have been reviewed |
 | Test case review | Finalized | Unit and integration test cases have been reviewed |
-| Policy coding | Completed | Complete identity implementation (6 steps + STM) |
+| Coding | Pending | Complete STM |
 | Coding review | Pending | Main pending activity |
 | Test execution confirmation | Pending | |
 | Gateway integration review | Pending | |
 | Security review | Pending | |
 
 ---
-
-## 11. Overall Status Summary 
-
-| Category | Status |
-|----------|--------|
-| Scope | Defined |
-| Requirement | Defined |
-| Architecture | Reviewed and finalized |
-| Pseudocode | Reviewed and finalized |
-| Test cases | Reviewed and finalized |
-| Identity coding | Completed |
-| Unit testing | Test cases finalized; STM execution pending |
-| C.U.T identification | Completed |
-| Coding review | Pending |
-| Gateway integration | Pending |
-| Final closure | Not started |
-
----
-
-**Report Prepared By:** Identity Module Developer (Single Person)  
-**Date:** May 2026  
-**Version:** 1.0  
-**Latest Commit:** `b5d4d1b` - "Docs: Update project report with simplified scope, add STM tests"

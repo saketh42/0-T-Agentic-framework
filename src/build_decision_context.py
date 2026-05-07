@@ -7,18 +7,18 @@ Builds the decision context from the agent information.
 from typing import Optional
 from datetime import datetime
 from schemas import (
-    IdentityRequest,
-    RegistryRecord,
-    AgentMetadata,
-    IdentityDecisionContext
+    IdentityValidationRequest,
+    AgentRegistryRecord,
+    AgentSecurityMetadata,
+    AgentIdentityDecisionContext
 )
 
 
 def build_identity_decision_context(
-    request: IdentityRequest,
-    metadata: AgentMetadata,
+    request: IdentityValidationRequest,
+    metadata: AgentSecurityMetadata,
     status: str
-) -> IdentityDecisionContext:
+) -> AgentIdentityDecisionContext:
     """
     Builds the decision context from agent information.
     
@@ -29,7 +29,7 @@ def build_identity_decision_context(
     print(" STEP 5: BUILD DECISION CONTEXT")
     print("="*60)
     
-    decision_context = IdentityDecisionContext(
+    decision_context = AgentIdentityDecisionContext(
         agent_id=request.agent_id,
         tenant_id=request.tenant_id,
         environment=request.environment,

@@ -10,11 +10,11 @@ from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from schemas import RegistryRecord, AgentMetadata, AuditLogEvent
-from database import DatabaseClient
+from schemas import AgentRegistryRecord, AgentSecurityMetadata, IdentityAgentAuditLogEvent
+from database import IdentityAgentDatabaseClient
 
 
-class PostgresDatabaseClient(DatabaseClient):
+class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
     """PostgreSQL implementation of DatabaseClient"""
     
     def __init__(self):
@@ -32,7 +32,7 @@ class PostgresDatabaseClient(DatabaseClient):
             cursor.execute(query, params)
             return cursor.fetchone()
     
-    def fetch_from_registry_active(self, agent_id: str) -> Optional[RegistryRecord]:
+    def fetch_from_registry_active(self, agent_id: str) -> Optional[AgentRegistryRecord]:
         query = """
             SELECT agent_id, tenant_id, name, type, purpose, role, status,
                    risk_tier, autonomy_level, ownership_team, governance_tags,
@@ -42,7 +42,7 @@ class PostgresDatabaseClient(DatabaseClient):
         """
         result = self._execute(query, (agent_id,))
         if result:
-            return RegistryRecord(
+            return AgentRegistryRecord(
                 agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
                 name=result['name'],
@@ -60,7 +60,7 @@ class PostgresDatabaseClient(DatabaseClient):
             )
         return None
     
-    def fetch_from_registry_suspended(self, agent_id: str) -> Optional[RegistryRecord]:
+    def fetch_from_registry_suspended(self, agent_id: str) -> Optional[AgentRegistryRecord]:
         query = """
             SELECT agent_id, tenant_id, name, type, purpose, role, status,
                    risk_tier, autonomy_level, ownership_team, governance_tags,
@@ -70,7 +70,7 @@ class PostgresDatabaseClient(DatabaseClient):
         """
         result = self._execute(query, (agent_id,))
         if result:
-            return RegistryRecord(
+            return AgentRegistryRecord(
                 agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
                 name=result['name'],
@@ -88,7 +88,7 @@ class PostgresDatabaseClient(DatabaseClient):
             )
         return None
     
-    def fetch_from_registry_disabled(self, agent_id: str) -> Optional[RegistryRecord]:
+    def fetch_from_registry_disabled(self, agent_id: str) -> Optional[AgentRegistryRecord]:
         query = """
             SELECT agent_id, tenant_id, name, type, purpose, role, status,
                    risk_tier, autonomy_level, ownership_team, governance_tags,
@@ -98,7 +98,7 @@ class PostgresDatabaseClient(DatabaseClient):
         """
         result = self._execute(query, (agent_id,))
         if result:
-            return RegistryRecord(
+            return AgentRegistryRecord(
                 agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
                 name=result['name'],
@@ -116,7 +116,7 @@ class PostgresDatabaseClient(DatabaseClient):
             )
         return None
     
-    def fetch_from_registry_pending(self, agent_id: str) -> Optional[RegistryRecord]:
+    def fetch_from_registry_pending(self, agent_id: str) -> Optional[AgentRegistryRecord]:
         query = """
             SELECT agent_id, tenant_id, name, type, purpose, role, status,
                    risk_tier, autonomy_level, ownership_team, governance_tags,
@@ -126,7 +126,7 @@ class PostgresDatabaseClient(DatabaseClient):
         """
         result = self._execute(query, (agent_id,))
         if result:
-            return RegistryRecord(
+            return AgentRegistryRecord(
                 agent_id=str(result['agent_id']),
                 tenant_id=result['tenant_id'],
                 name=result['name'],
@@ -144,7 +144,7 @@ class PostgresDatabaseClient(DatabaseClient):
             )
         return None
     
-    def fetch_agent_metadata(self, agent_id: str) -> Optional[AgentMetadata]:
+    def fetch_agent_security_metadata(self, agent_id: str) -> Optional[AgentSecurityMetadata]:
         query = """
             SELECT agent_id, name, role, risk_tier, autonomy_level,
                    governance_tags, updated_at
@@ -153,7 +153,7 @@ class PostgresDatabaseClient(DatabaseClient):
         """
         result = self._execute(query, (agent_id,))
         if result:
-            return AgentMetadata(
+            return AgentSecurityMetadata(
                 agent_id=str(result['agent_id']),
                 name=result['name'],
                 role=result['role'] or '',
@@ -166,7 +166,7 @@ class PostgresDatabaseClient(DatabaseClient):
             )
         return None
     
-    def write_audit_log(self, log_event: AuditLogEvent) -> bool:
+    def write_audit_log(self, log_event: IdentityAgentAuditLogEvent) -> bool:
         query = """
             INSERT INTO audit_logs (
                 log_id, timestamp, agent_id, session_id, tenant_id,

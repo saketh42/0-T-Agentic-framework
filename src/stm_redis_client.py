@@ -1,7 +1,7 @@
 """
-Redis-based Short-Term Memory client for Agentic Framework
+Redis-based Agent Short-Term Memory client for Agentic Framework
 
-Implements STMClient interface using Redis for per-session agent memory.
+Implements AgentShortTermMemoryClient interface using Redis for per-session agent memory.
 Session expires after SESSION_TTL seconds (default 1800 = 30 minutes).
 """
 
@@ -12,13 +12,13 @@ from datetime import datetime
 
 import redis
 
-from stm import STMClient
-from schemas import STMSession
+from stm import AgentShortTermMemoryClient
+from schemas import AgentShortTermMemorySession
 
 
-class STMRedisClient(STMClient):
+class RedisAgentShortTermMemoryClient(AgentShortTermMemoryClient):
     """
-    Redis implementation of STMClient.
+    Redis implementation of AgentShortTermMemoryClient.
     
     Configuration via environment variables:
     - REDIS_HOST (default: localhost)
@@ -40,7 +40,7 @@ class STMRedisClient(STMClient):
         agent_id: str,
         tenant_id: str,
         current_goal: str = ""
-    ) -> Optional[STMSession]:
+    ) -> Optional[AgentShortTermMemorySession]:
         """Create a new STM session with default empty state."""
         stm_data = {
             "session_id": session_id,
@@ -59,29 +59,29 @@ class STMRedisClient(STMClient):
             self.session_ttl,
             json.dumps(stm_data)
         )
-        return STMSession(**stm_data)
+        return AgentShortTermMemorySession(**stm_data)
 
-    def get_session(self, session_id: str) -> Optional[STMSession]:
+    def get_session(self, session_id: str) -> Optional[AgentShortTermMemorySession]:
         """Retrieve an existing STM session by session_id."""
         raw = self.redis_client.get(session_id)
         if raw:
             data = json.loads(raw)
-            return STMSession(**data)
+            return AgentShortTermMemorySession(**data)
         return None
 
-    def update_plan(self, session_id: str, plan_step: str) -> Optional[STMSession]:
+    def update_plan(self, session_id: str, plan_step: str) -> Optional[AgentShortTermMemorySession]:
         """Append a step to the current plan in STM."""
         return self._update_session_list(session_id, "current_plan", plan_step)
 
-    def add_intermediate_step(self, session_id: str, step_result: str) -> Optional[STMSession]:
+    def add_intermediate_step(self, session_id: str, step_result: str) -> Optional[AgentShortTermMemorySession]:
         """Append an intermediate step result to STM."""
         return self._update_session_list(session_id, "intermediate_steps", step_result)
 
-    def add_tool_output(self, session_id: str, tool_output: str) -> Optional[STMSession]:
+    def add_tool_output(self, session_id: str, tool_output: str) -> Optional[AgentShortTermMemorySession]:
         """Append a tool output to STM."""
         return self._update_session_list(session_id, "recent_tool_outputs", tool_output)
 
-    def update_flags(self, session_id: str, flags: Dict[str, Any]) -> Optional[STMSession]:
+    def update_flags(self, session_id: str, flags: Dict[str, Any]) -> Optional[AgentShortTermMemorySession]:
         """Update flags in STM session."""
         raw = self.redis_client.get(session_id)
         if raw:
@@ -93,7 +93,7 @@ class STMRedisClient(STMClient):
                 self.session_ttl,
                 json.dumps(data)
             )
-            return STMSession(**data)
+            return AgentShortTermMemorySession(**data)
         return None
 
     def delete_session(self, session_id: str) -> bool:
@@ -109,7 +109,7 @@ class STMRedisClient(STMClient):
         session_id: str,
         field: str,
         value: str
-    ) -> Optional[STMSession]:
+    ) -> Optional[AgentShortTermMemorySession]:
         """Helper to append to a list field in STM and update TTL."""
         raw = self.redis_client.get(session_id)
         if raw:
@@ -121,5 +121,5 @@ class STMRedisClient(STMClient):
                 self.session_ttl,
                 json.dumps(data)
             )
-            return STMSession(**data)
+            return AgentShortTermMemorySession(**data)
         return None

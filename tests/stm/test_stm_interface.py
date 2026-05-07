@@ -1,20 +1,20 @@
 """
-Unit tests for STM (Short-Term Memory) interface and Redis client.
+Unit tests for Agent Short-Term Memory interface and Redis client.
 
-Tests the STMClient abstract interface and STMRedisClient implementation.
+Tests the AgentShortTermMemoryClient abstract interface and RedisAgentShortTermMemoryClient implementation.
 """
 
 import sys
 import os
 sys.path.insert(0, '../../src')
 
-from stm import STMClient
-from stm_redis_client import STMRedisClient
-from schemas import STMSession
+from stm import AgentShortTermMemoryClient
+from stm_redis_client import RedisAgentShortTermMemoryClient
+from schemas import AgentShortTermMemorySession
 import pytest
 
 
-class MockSTMClient(STMClient):
+class MockAgentShortTermMemoryClient(AgentShortTermMemoryClient):
     """Mock STM client for testing interface without Redis."""
     
     def __init__(self):
@@ -22,7 +22,7 @@ class MockSTMClient(STMClient):
         self.ttl = 1800
     
     def create_session(self, session_id, agent_id, tenant_id, current_goal=""):
-        session = STMSession(
+        session = AgentShortTermMemorySession(
             session_id=session_id,
             agent_id=agent_id,
             tenant_id=tenant_id,
@@ -73,11 +73,11 @@ class MockSTMClient(STMClient):
         return session_id in self.sessions
 
 
-class TestSTMInterface:
-    """Test STMClient interface compliance."""
+class TestAgentShortTermMemoryInterface:
+    """Test AgentShortTermMemoryClient interface compliance."""
     
     def setup_method(self):
-        self.stm = MockSTMClient()
+        self.stm = MockAgentShortTermMemoryClient()
     
     def test_create_session(self):
         """Test session creation."""
@@ -165,11 +165,11 @@ class TestSTMInterface:
 
 
 @pytest.mark.skipif(not os.getenv("REDIS_HOST"), reason="Redis not available")
-class TestSTMRedisClient:
-    """Test STMRedisClient implementation (requires Redis)."""
+class TestRedisAgentShortTermMemoryClient:
+    """Test RedisAgentShortTermMemoryClient implementation (requires Redis)."""
     
     def setup_method(self):
-        self.stm = STMRedisClient()
+        self.stm = RedisAgentShortTermMemoryClient()
         self.test_session_id = "test-session-123"
     
     def teardown_method(self):

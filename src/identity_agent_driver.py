@@ -1,6 +1,6 @@
 """
 Identity Agent - Driver (PostgreSQL)
-
+ 
 This is the driver that uses PostgreSQL as the database.
 Used for integration testing with real database.
 """
@@ -9,12 +9,12 @@ import sys
 import os
 sys.path.insert(0, '.')
 
-from postgres_client import PostgresDatabaseClient
+from postgres_client import PostgresIdentityAgentDatabaseClient
 from identity_agent import identity_agent_service
 
 # Optional STM client (non-breaking)
 try:
-    from stm_redis_client import STMRedisClient
+    from stm_redis_client import RedisAgentShortTermMemoryClient
     STM_AVAILABLE = True
 except ImportError:
     STM_AVAILABLE = False
@@ -82,7 +82,7 @@ def main():
     stm = None
     if STM_AVAILABLE and os.getenv("USE_STM"):
         try:
-            stm = STMRedisClient()
+            stm = RedisAgentShortTermMemoryClient()
             print("    STM (Redis) Connected\n")
         except Exception as e:
             print(f"    STM init failed (non-critical): {e}\n")

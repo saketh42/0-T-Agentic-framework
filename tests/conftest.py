@@ -13,10 +13,10 @@ TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from schemas import (
-    RegistryRecord,
-    AgentMetadata,
+    AgentRegistryRecord,
+    AgentSecurityMetadata,
 )
-from database import DatabaseClient
+from database import IdentityAgentDatabaseClient
 from identity_agent import identity_agent_service
 
 
@@ -45,7 +45,7 @@ def parse_dt(dt_str):
 
 
 def create_registry_record(data):
-    return RegistryRecord(
+    return AgentRegistryRecord(
         agent_id=data["agent_id"],
         tenant_id=data["tenant_id"],
         name=data.get("name", "Test Agent"),
@@ -63,7 +63,7 @@ def create_registry_record(data):
 
 
 def create_metadata(agent_id, data):
-    return AgentMetadata(
+    return AgentSecurityMetadata(
         agent_id=agent_id,
         name=data.get("name", "Test Agent"),
         role=data["role"],
@@ -77,12 +77,12 @@ def create_metadata(agent_id, data):
 
 
 def create_mock_db(agent_id, status, has_metadata=True):
-    mock = Mock(spec=DatabaseClient)
+    mock = Mock(spec=IdentityAgentDatabaseClient)
     mock.fetch_from_registry_active = Mock(return_value=None)
     mock.fetch_from_registry_suspended = Mock(return_value=None)
     mock.fetch_from_registry_disabled = Mock(return_value=None)
     mock.fetch_from_registry_pending = Mock(return_value=None)
-    mock.fetch_agent_metadata = Mock(return_value=None)
+    mock.fetch_agent_security_metadata = Mock(return_value=None)
     mock.write_audit_log = Mock(return_value=True)
 
     registry_data = MOCK_DATA["registry_records"].get(agent_id, {}).get(status)
@@ -100,29 +100,29 @@ def create_mock_db(agent_id, status, has_metadata=True):
     if has_metadata:
         metadata_data = MOCK_DATA["metadata"].get(agent_id)
         if metadata_data:
-            mock.fetch_agent_metadata.return_value = create_metadata(agent_id, metadata_data)
+            mock.fetch_agent_security_metadata.return_value = create_metadata(agent_id, metadata_data)
 
     return mock
 
 
 def create_mock_db_for_unknown():
-    mock = Mock(spec=DatabaseClient)
+    mock = Mock(spec=IdentityAgentDatabaseClient)
     mock.fetch_from_registry_active = Mock(return_value=None)
     mock.fetch_from_registry_suspended = Mock(return_value=None)
     mock.fetch_from_registry_disabled = Mock(return_value=None)
     mock.fetch_from_registry_pending = Mock(return_value=None)
-    mock.fetch_agent_metadata = Mock(return_value=None)
+    mock.fetch_agent_security_metadata = Mock(return_value=None)
     mock.write_audit_log = Mock(return_value=True)
     return mock
 
 
 def create_mock_db_with_record(record, has_metadata=True):
-    mock = Mock(spec=DatabaseClient)
+    mock = Mock(spec=IdentityAgentDatabaseClient)
     mock.fetch_from_registry_active = Mock(return_value=None)
     mock.fetch_from_registry_suspended = Mock(return_value=None)
     mock.fetch_from_registry_disabled = Mock(return_value=None)
     mock.fetch_from_registry_pending = Mock(return_value=None)
-    mock.fetch_agent_metadata = Mock(return_value=None)
+    mock.fetch_agent_security_metadata = Mock(return_value=None)
     mock.write_audit_log = Mock(return_value=True)
 
     if record:
@@ -131,7 +131,7 @@ def create_mock_db_with_record(record, has_metadata=True):
     if has_metadata:
         metadata_data = MOCK_DATA["metadata"].get(record.agent_id)
         if metadata_data:
-            mock.fetch_agent_metadata.return_value = create_metadata(record.agent_id, metadata_data)
+            mock.fetch_agent_security_metadata.return_value = create_metadata(record.agent_id, metadata_data)
 
     return mock
 
