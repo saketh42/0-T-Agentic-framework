@@ -43,6 +43,8 @@ def submit_decision_context_to_gateway(
     print(f"      - session_id: {decision_context.session_id}")
     print(f"      - status: {decision_context.status}")
     print(f"      - timestamp: {decision_context.timestamp}")
+    print(f"\n       JWT Token:")
+    print(f"         - token: {decision_context.token[:80]}...")
     print(f"\n       Security Posture (metadata):")
     print(f"         - agent_id: {decision_context.metadata.agent_id}")
     print(f"         - role: {decision_context.metadata.role}")

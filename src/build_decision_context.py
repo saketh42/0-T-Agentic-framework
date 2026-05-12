@@ -58,5 +58,6 @@ def build_identity_decision_context(
     print(f"         - allowed_tools: {decision_context.metadata.allowed_tools}")
     print(f"         - capabilities: {decision_context.metadata.capabilities}")
     print(f"         - governance_tags: {decision_context.metadata.governance_tags}")
+    print(f"         - token: {decision_context.token}")
     
     return decision_context

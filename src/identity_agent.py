@@ -13,6 +13,7 @@ from check_registry import lookup_agent_in_identity_registry, create_identity_de
 from fetch_metadata import fetch_agent_security_metadata
 from build_decision_context import build_identity_decision_context
 from send_to_policy_agent import submit_decision_context_to_gateway, create_identity_allow_audit_log
+from issue_jwt import issue_agent_jwt
 
 
 def identity_agent_service(
@@ -102,6 +103,20 @@ def identity_agent_service(
     print("\n>>> Step 5: Build Decision Context")
     decision_context = build_identity_decision_context(request, metadata, status)
     print("   [PASS] Step 5 PASSED")
+    
+    # Step 5b: Issue JWT
+    print("\n>>> Step 5b: Issue JWT Token")
+    try:
+        token = issue_agent_jwt(decision_context)
+        decision_context.token = token
+        print("   [PASS] JWT issued successfully")
+        print(f"   Token: {token[:80]}...")
+    except Exception as e:
+        print(f"   [FAIL] JWT issuance failed: {e}")
+        return IdentityValidationResponse(
+            is_authorized=False,
+            failure_reason=f"JWT issuance failed: {str(e)}"
+        )
     
     # Step 6: Submit to Gateway
     print("\n>>> Step 6: Submit to Gateway")

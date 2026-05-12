@@ -71,6 +71,7 @@ class AgentIdentityDecisionContext(BaseModel):
     metadata: AgentSecurityMetadata
     status: str
     timestamp: datetime
+    token: Optional[str] = None
 
 
 class IdentityValidationResponse(BaseModel):

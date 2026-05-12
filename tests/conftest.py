@@ -10,6 +10,14 @@ import pytest
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
 
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_jwt_key():
+    key_path = os.path.join(TEST_DATA_DIR, "test_jwt_private.pem")
+    os.environ["IDENTITY_PRIVATE_KEY_PATH"] = key_path
+    yield
+    os.environ.pop("IDENTITY_PRIVATE_KEY_PATH", None)
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from schemas import (
