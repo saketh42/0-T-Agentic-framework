@@ -75,7 +75,7 @@ class AgentIdentityDecisionContext(BaseModel):
 
 
 class IdentityValidationResponse(BaseModel):
-    is_authorized: bool
+    authorization: str
     identity_context: Optional[AgentIdentityDecisionContext] = None
     audit_log_id: Optional[str] = None
     failure_reason: Optional[str] = None
