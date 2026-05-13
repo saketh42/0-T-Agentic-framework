@@ -8,5 +8,5 @@ def test_missing_metadata(test_inputs, mock_db_active_no_metadata):
     payload = test_inputs["missing_metadata"]
     result = identity_agent_service(payload, mock_db_active_no_metadata)
 
-    assert result.is_authorized is False
+    assert result.authorization == "DENY"
     assert "missing metadata" in result.failure_reason.lower()

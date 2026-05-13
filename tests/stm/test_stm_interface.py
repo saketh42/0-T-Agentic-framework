@@ -67,10 +67,12 @@ class MockAgentShortTermMemoryClient(AgentShortTermMemoryClient):
         if session_id in self.sessions:
             del self.sessions[session_id]
             return True
-        return False
+        return "DENY"
     
     def extend_ttl(self, session_id):
-        return session_id in self.sessions
+        if session_id in self.sessions:
+            return True
+        return "DENY"
 
 
 class TestAgentShortTermMemoryInterface:
@@ -150,7 +152,7 @@ class TestAgentShortTermMemoryInterface:
     def test_delete_session_not_exists(self):
         """Test deleting non-existent session."""
         result = self.stm.delete_session("non-existent")
-        assert result is False
+        assert result == "DENY"
     
     def test_extend_ttl(self):
         """Test extending TTL for existing session."""
@@ -161,7 +163,7 @@ class TestAgentShortTermMemoryInterface:
     def test_extend_ttl_not_exists(self):
         """Test extending TTL for non-existent session."""
         result = self.stm.extend_ttl("non-existent")
-        assert result is False
+        assert result == "DENY"
 
 
 @pytest.mark.skipif(not os.getenv("REDIS_HOST"), reason="Redis not available")

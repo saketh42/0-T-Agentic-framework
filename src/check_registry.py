@@ -74,7 +74,7 @@ def lookup_agent_in_identity_registry(
         print(f"    Agent not found: {request.agent_id}")
         error_msg = f"Unknown agent: {request.agent_id} for tenant={request.tenant_id}, environment={request.environment}"
         audit_log = create_identity_deny_audit_log(request, error_msg)
-        error = IdentityValidationResponse(is_authorized=False, failure_reason=error_msg)
+        error = IdentityValidationResponse(authorization="DENY", failure_reason=error_msg)
         return None, None, error, audit_log
     
     print(f"\n   Status: {found_status}")
@@ -87,7 +87,7 @@ def lookup_agent_in_identity_registry(
         print(f"      - Registry tenant: {registry_record.tenant_id}")
         error_msg = "Cross-tenant access attempt detected"
         audit_log = create_identity_deny_audit_log(request, error_msg)
-        error = IdentityValidationResponse(is_authorized=False, failure_reason=error_msg)
+        error = IdentityValidationResponse(authorization="DENY", failure_reason=error_msg)
         return None, None, error, audit_log
     print("    Tenant matches")
     
@@ -96,7 +96,7 @@ def lookup_agent_in_identity_registry(
         print(f"\n    Agent is {found_status}, not active")
         error_msg = f"Agent {request.agent_id} is not active. Current status: {found_status}"
         audit_log = create_identity_deny_audit_log(request, error_msg)
-        error = IdentityValidationResponse(is_authorized=False, failure_reason=error_msg, audit_log_id=audit_log.event_id)
+        error = IdentityValidationResponse(authorization="DENY", failure_reason=error_msg, audit_log_id=audit_log.event_id)
         return None, None, error, audit_log
     
     print("\n    Agent is active and authorized")

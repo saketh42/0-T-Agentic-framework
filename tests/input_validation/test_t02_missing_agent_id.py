@@ -8,5 +8,5 @@ def test_missing_agent_id(test_inputs, mock_db_active):
     payload = test_inputs["missing_agent_id"]
     result = identity_agent_service(payload, mock_db_active)
 
-    assert result.is_authorized is False
+    assert result.authorization == "DENY"
     assert "agent_id" in result.failure_reason.lower()

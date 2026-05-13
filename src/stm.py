@@ -54,11 +54,11 @@ class AgentShortTermMemoryClient(ABC):
         pass
 
     @abstractmethod
-    def delete_session(self, session_id: str) -> bool:
-        """Delete an STM session from Redis."""
+    def delete_session(self, session_id: str) -> bool | str:
+        """Delete an STM session from Redis. Returns True on success, 'DENY' if session doesn't exist."""
         pass
 
     @abstractmethod
-    def extend_ttl(self, session_id: str) -> bool:
-        """Extend TTL for an existing STM session."""
+    def extend_ttl(self, session_id: str) -> bool | str:
+        """Extend TTL for an existing STM session. Returns True on success, 'DENY' if session doesn't exist."""
         pass

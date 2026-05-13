@@ -59,9 +59,9 @@ def main():
     print("\n" + "="*60)
     print(" FINAL OUTPUT")
     print("="*60)
-    print(f"\nSuccess: {result.is_authorized}")
+    print(f"\nSuccess: {result.authorization}")
     
-    if result.is_authorized:
+    if result.authorization == "ALLOW":
         print("\n ACCESS GRANTED")
         print(f"\n  Agent ID:       {result.identity_context.agent_id}")
         print(f"  Tenant ID:      {result.identity_context.tenant_id}")

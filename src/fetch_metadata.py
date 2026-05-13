@@ -29,7 +29,7 @@ def fetch_agent_security_metadata(
     
     if not metadata:
         error = IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason=f"Missing metadata in DB for agent {agent_id}"
         )
         print(f"    Metadata not found")

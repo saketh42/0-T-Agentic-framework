@@ -72,7 +72,7 @@ def identity_agent_service(
             print(f"   [WARN] Failed to write audit log: {e}")
         print("   [FAIL] Step 3 FAILED")
         return IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason=reg_error.failure_reason,
             audit_log_id=deny_audit.event_id
         )
@@ -114,7 +114,7 @@ def identity_agent_service(
     except Exception as e:
         print(f"   [FAIL] JWT issuance failed: {e}")
         return IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason=f"JWT issuance failed: {str(e)}"
         )
     
@@ -136,7 +136,7 @@ def identity_agent_service(
     print("="*60)
     
     return IdentityValidationResponse(
-        is_authorized=True,
+        authorization="ALLOW",
         identity_context=decision_context,
         audit_log_id=None  # No audit log for success - goes to Gateway
     )

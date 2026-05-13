@@ -23,7 +23,7 @@ def validate_identity_validation_request(request_payload: Dict[str, Any]) -> Tup
     
     if not request_payload:
         error = IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason="Empty request payload"
         )
         print("    Empty request payload")
@@ -39,7 +39,7 @@ def validate_identity_validation_request(request_payload: Dict[str, Any]) -> Tup
         
     except Exception as e:
         error = IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason=f"Invalid request payload: {str(e)}"
         )
         print(f"    Invalid request: {str(e)}")
@@ -52,7 +52,7 @@ def validate_required_request_fields(request: IdentityValidationRequest) -> Opti
     
     if not request.agent_id or not request.agent_id.strip():
         error = IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason="Invalid request: agent_id is required"
         )
         print("agent_id is empty")
@@ -60,7 +60,7 @@ def validate_required_request_fields(request: IdentityValidationRequest) -> Opti
     
     if not request.tenant_id or not request.tenant_id.strip():
         error = IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason="Invalid request: tenant_id is required"
         )
         print("tenant_id is empty")
@@ -68,7 +68,7 @@ def validate_required_request_fields(request: IdentityValidationRequest) -> Opti
     
     if not request.environment or not request.environment.strip():
         error = IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason="Invalid request: environment is required"
         )
         print("environment is empty")

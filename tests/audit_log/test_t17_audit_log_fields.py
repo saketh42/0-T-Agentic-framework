@@ -9,7 +9,7 @@ def test_audit_log_required_fields(test_inputs, mock_db_active):
     result = identity_agent_service(payload, mock_db_active)
 
     # For success, check decision context has all fields
-    assert result.is_authorized is True
+    assert result.authorization == "ALLOW"
     assert result.identity_context is not None
 
     required_fields = ["agent_id", "tenant_id", "environment", "network_zone",

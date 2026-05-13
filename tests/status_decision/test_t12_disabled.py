@@ -8,5 +8,5 @@ def test_disabled_agent(test_inputs, mock_db_disabled):
     payload = test_inputs["disabled_agent"]
     result = identity_agent_service(payload, mock_db_disabled)
 
-    assert result.is_authorized is False
+    assert result.authorization == "DENY"
     assert "disabled" in result.failure_reason.lower()

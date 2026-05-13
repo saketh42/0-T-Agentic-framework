@@ -23,7 +23,7 @@ def establish_identity_agent_db_connection(db_client: Optional[IdentityAgentData
     
     if db_client is None:
         error = IdentityValidationResponse(
-            is_authorized=False,
+            authorization="DENY",
             failure_reason="Database client not initialized"
         )
         print("    Database client is None")

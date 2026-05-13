@@ -11,4 +11,4 @@ def test_cross_environment(test_inputs, cross_environment_record):
     payload = test_inputs["cross_environment"]
     result = identity_agent_service(payload, mock_db)
 
-    assert result.is_authorized is True
+    assert result.authorization == "ALLOW"

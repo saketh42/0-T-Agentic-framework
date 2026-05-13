@@ -38,9 +38,9 @@ def run_test(db, agent_id: str, description: str, stm_client=None):
     print("\n" + "="*60)
     print(" FINAL OUTPUT")
     print("="*60)
-    print(f"\n   Success: {result.is_authorized}")
+    print(f"\n   Success: {result.authorization}")
     
-    if result.is_authorized:
+    if result.authorization == "ALLOW":
         print("\n    ACCESS GRANTED - Sent to Policy Agent")
         print(f"\n    Request Context (sent to Policy Agent):")
         print(f"      - agent_id:     {result.identity_context.agent_id}")

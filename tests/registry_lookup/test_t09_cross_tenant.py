@@ -11,5 +11,5 @@ def test_cross_tenant(test_inputs, cross_tenant_record):
     payload = test_inputs["cross_tenant"]
     result = identity_agent_service(payload, mock_db)
 
-    assert result.is_authorized is False
+    assert result.authorization == "DENY"
     assert "cross-tenant" in result.failure_reason.lower()

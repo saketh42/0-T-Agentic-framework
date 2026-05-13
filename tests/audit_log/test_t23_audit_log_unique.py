@@ -13,5 +13,5 @@ def test_audit_log_event_id_unique(test_inputs, mock_db_active):
     # For success, audit_log_id is None (goes to Gateway)
     assert result1.audit_log_id is None
     assert result2.audit_log_id is None
-    assert result1.is_authorized is True
-    assert result2.is_authorized is True
+    assert result1.authorization == "ALLOW"
+    assert result2.authorization == "ALLOW"
