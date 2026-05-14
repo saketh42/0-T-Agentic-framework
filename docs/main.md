@@ -529,8 +529,12 @@ The database team will handle storage, queries, and persistence based on the sch
 3. Check whether agent is active or blocked
 4. Fetch metadata
 5. Build decision context
-6. Write audit log event
-7. Return final output
+6. Issue JWT (RS256, signed with key from signing_keys table)
+7. Store context in STM (Redis, 1-hour TTL)
+8. Submit decision context to Gateway
+9. Return final output (ALLOW + JWT, or DENY/BLOCK + failure_reason)
+
+*Note: Audit logging is handled by the Gateway Audit Logchain (see §6.4), not the Identity Agent.*
 
 ## Person 1 Ownership
 

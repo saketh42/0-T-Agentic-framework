@@ -1,8 +1,8 @@
-# Changes Summary - Identity Agent Refactoring
+# Changes Summary - Identity Agent
 
 ## Overview
 
-This document summarizes all changes made to the Identity Agent codebase to improve code clarity, remove emojis, and align with the architecture specification.
+This document summarizes all changes made to the Identity Agent codebase.
 
 ---
 
@@ -12,8 +12,8 @@ All functions were renamed to better reflect their actual purpose in the system 
 
 | Original Function | New Function | File | Reason |
 |------------------|--------------|------|--------|
-| `identity_agent_flow()` | `identity_agent_service()` | `src/identity_agent.py` | Aligns with "Identity & Context Service" (main.md:272) |
-| `send_to_policy_agent()` | `submit_decision_context_to_gateway()` | `src/send_to_policy_agent.py` | Correctly reflects submission to Gateway, not Gateway (main.md:125) |
+| `identity_agent_flow()` | `identity_agent_service()` | `src/identity_agent.py` | Aligns with "Identity & Context Service" |
+| `send_to_policy_agent()` | `submit_decision_context_to_gateway()` | `src/send_to_policy_agent.py` | Correctly reflects submission to Gateway |
 | `check_registry()` | `lookup_agent_in_identity_registry()` | `src/check_registry.py` | More descriptive of actual action |
 | `fetch_metadata()` | `fetch_agent_security_metadata()` | `src/fetch_metadata.py` | More specific to agent context |
 | `validate_request()` | `validate_identity_validation_request()` | `src/validate_request.py` | Distinguishes from other request types |
@@ -30,7 +30,7 @@ Removed all 74+ emojis across 9 files and replaced them with descriptive text ta
 ### Replacement Mapping
 
 | Emoji | Replacement | Meaning |
-|-------|------------------|---------|
+|-------|-------------|---------|
 | ✅ | `[PASS]` | Operation successful |
 | ❌ | `[FAIL]` | Operation failed |
 | ⚠️ | `[WARN]` | Warning message |
@@ -45,140 +45,160 @@ Removed all 74+ emojis across 9 files and replaced them with descriptive text ta
 | 📦 | `[BUILD]` | Build operation |
 | 📨 | `[SEND]` | Send operation |
 
-### Files Modified (9 files)
+---
 
-1. `src/identity_agent.py` - 14 emojis removed
-2. `src/identity_agent_driver.py` - 15 emojis removed
-3. `src/check_registry.py` - 11 emojis removed
-4. `src/validate_request.py` - 7 emojis removed
-5. `src/send_to_policy_agent.py` - 6 emojis removed
-6. `src/build_decision_context.py` - 4 emojis removed
-7. `src/fetch_metadata.py` - 4 emojis removed
-8. `src/connect_db.py` - 3 emojis removed
-9. `src/run.py` - 8 emojis removed
+## 3. Schema Evolution
+
+Updated the `IdentityValidationResponse` schema through multiple iterations.
+
+| Version | Field | Type | Notes |
+|---------|-------|------|-------|
+| Original | `success` | `bool` | Boolean success flag |
+| Refactored | `is_authorized` | `bool` | Renamed for clarity |
+| Final | `authorization` | `str` | `ALLOW` / `DENY` / `BLOCK` |
+
+Other field renames:
+
+| Original Field | Final Field | Type |
+|----------------|-------------|------|
+| `decision_context` | `identity_context` | `Optional[AgentIdentityDecisionContext]` |
+| `audit_event_id` | removed | — (Gateway owns audit logging) |
+| `error_message` | `failure_reason` | `Optional[str]` |
+
+### Added Schemas
+
+| Schema | File | Purpose |
+|--------|------|---------|
+| `SigningKey` | `src/schemas.py` | JWT signing key pair with kid, algorithm, expiry |
+| `AgentShortTermMemorySession` | `src/schemas.py` | Per-session agent state for STM |
 
 ---
 
-## 3. IdentityValidationResponse Schema Update
+## 4. JWT Issuance
 
-Updated the `IdentityValidationResponse` schema in `src/schemas.py` to use more descriptive field names.
+Added JWT issuance to the Identity Agent decision context.
 
-| Original Field | New Field | Reason |
-|----------------|-----------|--------|
-| `success` | `is_authorized` | More accurate - indicates authorization status |
-| `decision_context` | `identity_context` | More specific to identity context |
-| `audit_event_id` | `audit_log_id` | More consistent naming |
-| `error_message` | `failure_reason` | More descriptive of purpose |
+### New Files
 
-### Files Updated with New Field Names
+| File | Purpose |
+|------|---------|
+| `src/issue_jwt.py` | JWT signing with RS256, JWK conversion, key fallback |
+| `src/generate_key.py` | CLI tool to generate RSA keys into `signing_keys` table |
+| `signing_keys.sql` | Database schema for key storage |
 
-- `src/identity_agent.py`
-- `src/check_registry.py`
-- `src/connect_db.py`
-- `src/fetch_metadata.py`
-- `src/validate_request.py`
-- `src/identity_agent_driver.py`
-- `src/run.py`
+### Key Management Flow
+
+1. `generate_key.py` generates RSA 2048-bit key pair
+2. Key stored in `signing_keys` table with `kid` (SHA-256 fingerprint of public key)
+3. `issue_agent_jwt()` loads active key from DB (or env/file fallback)
+4. JWT signed with RS256, includes `kid` in header
+5. JWK derived from public key for JWKS endpoint
+
+### JWT Payload
+
+```json
+{
+  "sub": "agent-001",
+  "iss": "identity-agent",
+  "iat": <unix-timestamp>,
+  "exp": <unix-timestamp>
+}
+```
 
 ---
 
-## 4. Short-Term Memory (STM) Integration
+## 5. Short-Term Memory (STM) Integration
 
-Added STM capability as described in architecture document (section 7.1).
+Added STM capability with Redis backend.
 
-### New Files Created
+### New Files
 
-1. **`src/stm.py`** - Abstract interface for STM operations
-   - Defines `AgentShortTermMemoryClient` abstract base class
-   - Methods: `create_session()`, `get_session()`, `update_plan()`, `add_intermediate_step()`, `add_tool_output()`, `update_flags()`, `delete_session()`, `extend_ttl()`
-
-2. **`src/stm_redis_client.py`** - Redis implementation
-   - Implements `AgentShortTermMemoryClient` interface
-   - Configuration via environment variables: `REDIS_HOST`, `REDIS_PORT`, `STM_TTL`
-   - Default TTL: 1800 seconds (30 minutes)
-
-3. **`src/schemas.py`** - Added `AgentShortTermMemorySession` schema
-   - Fields: `session_id`, `agent_id`, `tenant_id`, `current_goal`, `current_plan`, `intermediate_steps`, `recent_tool_outputs`, `flags`, `last_updated`
+| File | Purpose |
+|------|---------|
+| `src/stm.py` | Abstract interface for STM operations |
+| `src/stm_redis_client.py` | Redis implementation |
+| `src/schemas.py` | `AgentShortTermMemorySession` schema |
 
 ### Integration Points
 
-- STM initialized in `identity_agent_service()` after successful validation (step 4)
-- Non-breaking: STM client is optional parameter
-- If Redis unavailable, flow continues (graceful degradation)
+- STM initialized in `identity_agent_service()` after successful validation
+- Decision context stored in Redis with 1-hour TTL (`ctx:{session_id}`)
+- Non-breaking: STM client is optional; graceful degradation if Redis unavailable
 
 ---
 
-## 5. Requirements Update
+## 6. FastAPI Server
 
-Updated `src/requirements.txt` to include Redis dependency:
-```
-redis>=5.0.0
-```
+Added a FastAPI server exposing HTTP endpoints.
+
+### New File
+
+| File | Purpose |
+|------|---------|
+| `src/api.py` | FastAPI application with routes |
+
+### Endpoints
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `POST` | `/validate` | Identity validation and JWT issuance |
+| `GET` | `/.well-known/jwks.json` | Public signing keys (optional `?kid=` filter) |
+| `GET` | `/stm` | View all current STM sessions |
 
 ---
 
-## 6. Files Modified Summary
+## 7. Audit Log Removed
+
+Audit logging responsibility moved to the Gateway per architecture (`docs/main.md` §6.4).
+
+### Removed
+
+- `IdentityValidationResponse.audit_log_id` field
+- `write_audit_log()` calls from orchestrator pipeline
+- `create_identity_deny_audit_log()` and `create_identity_allow_audit_log()` helpers
+- All audit log test files (`tests/audit_log/`)
+
+---
+
+## 8. Files Modified Summary
 
 | File | Changes |
 |------|---------|
-| `src/identity_agent.py` | Renamed function, updated imports/calls, removed emojis, updated IdentityValidationResponse fields |
-| `src/validate_request.py` | Renamed functions, removed emojis, updated IdentityValidationResponse fields |
-| `src/connect_db.py` | Renamed function, removed emojis, updated IdentityValidationResponse fields |
-| `src/check_registry.py` | Renamed function, removed emojis, updated IdentityValidationResponse fields |
-| `src/fetch_metadata.py` | Renamed function, removed emojis, updated IdentityValidationResponse fields |
-| `src/build_decision_context.py` | Renamed function, removed emojis, fixed spelling ("BUID" → "BUILD") |
-| `src/send_to_policy_agent.py` | Renamed function, removed emojis |
-| `src/identity_agent_driver.py` | Updated imports/calls, removed emojis, updated IdentityValidationResponse fields |
-| `src/run.py` | Updated imports/calls, removed emojis, updated IdentityValidationResponse fields |
-| `src/schemas.py` | Updated IdentityValidationResponse fields, added AgentShortTermMemorySession schema |
-| `src/requirements.txt` | Added redis>=5.0.0 |
-| `src/stm.py` | NEW: STM abstract interface |
-| `src/stm_redis_client.py` | NEW: Redis implementation |
+| `src/identity_agent.py` | Removed audit log, added JWT + STM decision context storage |
+| `src/validate_request.py` | Renamed functions, removed emojis |
+| `src/connect_db.py` | Renamed function, removed emojis |
+| `src/check_registry.py` | Removed audit log creation, simplified return signature |
+| `src/fetch_metadata.py` | Renamed function, removed emojis |
+| `src/build_decision_context.py` | Renamed function, removed emojis |
+| `src/send_to_policy_agent.py` | Simplified return type, removed audit log creation |
+| `src/identity_agent_driver.py` | Updated for new schema and removed audit log display |
+| `src/run.py` | Updated for new schema and removed audit log display |
+| `src/schemas.py` | Finalized response schema, added `SigningKey` and `AgentShortTermMemorySession` |
+| `src/database.py` | Added signing key abstract methods |
+| `src/postgres_client.py` | Added signing key CRUD, refactored registry queries |
+| `src/stm.py` | **NEW**: STM abstract interface |
+| `src/stm_redis_client.py` | Added decision context storage/retrieval |
+| `src/issue_jwt.py` | **NEW**: JWT issuance with DB key loading and fallback |
+| `src/generate_key.py` | **NEW**: CLI for RSA key generation |
+| `src/api.py` | **NEW**: FastAPI server with validate/JWKS/STM endpoints |
+| `signing_keys.sql` | **NEW**: Database schema for JWT signing keys |
 
 ---
 
-## 7. Commit Information
+## 9. Commit Information
+
+### Refactoring Commit
 
 **Commit Hash:** `9f096bd`
 
-**Commit Message:**
 ```
 Refactor: Rename functions for clarity, remove emojis, update IdentityValidationResponse schema
-
-- Rename identity_agent_flow → identity_agent_service
-- Rename send_to_policy_agent → submit_decision_context_to_gateway (reflects actual Gateway endpoint)
-- Rename check_registry → lookup_agent_in_identity_registry
-- Rename fetch_metadata → fetch_agent_security_metadata
-- Rename validate_request → validate_identity_validation_request
-- Rename validate_required_fields → validate_required_request_fields
-- Rename connect_to_database → establish_identity_agent_db_connection
-- Rename build_decision_context → build_identity_decision_context
-- Remove all 74+ emojis, replace with text tags [PASS]/[FAIL]/[WARN]/[AUDIT] etc.
-- Update IdentityValidationResponse schema: success→is_authorized, decision_context→identity_context, 
-  audit_event_id→audit_log_id, error_message→failure_reason
-- Add STM (Short-Term Memory) integration with Redis backend
-- Add AgentShortTermMemorySession schema and AgentShortTermMemoryClient interface
-- Update requirements.txt with redis>=5.0.0
 ```
 
-**Pushed to:** `origin/main`
+### Latest Commit
 
----
+**Commit Hash:** `d87acc2`
 
-## 8. Architecture Alignment
-
-These changes align the codebase with the architecture specification in `docs/main.md`:
-
-- **Section 6.1**: "Identity & Context Service" - Function renamed to `identity_agent_service()`
-- **Section 6.2**: Gateway endpoints - Function renamed to `submit_decision_context_to_gateway()`
-- **Section 7.1**: STM specification - Redis-backed, 30min TTL, per-session
-- **Section 4.2**: Agent libraries & orchestration - Clear function names for maintainability
-
----
-
-## 9. Testing Notes
-
-- All modified Python files pass syntax checks (`python3 -m py_compile`)
-- No emojis remain in source code (verified with regex scan)
-- All function calls updated to use new names
-- STM integration is optional and non-breaking
+```
+Remove audit log responsibility, add STM + JWKS endpoints
+```
