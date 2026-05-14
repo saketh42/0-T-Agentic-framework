@@ -77,8 +77,17 @@ class AgentIdentityDecisionContext(BaseModel):
 class IdentityValidationResponse(BaseModel):
     authorization: str
     identity_context: Optional[AgentIdentityDecisionContext] = None
-    audit_log_id: Optional[str] = None
     failure_reason: Optional[str] = None
+
+
+class SigningKey(BaseModel):
+    kid: str
+    private_key_pem: str
+    public_key_pem: str
+    algorithm: str = "RS256"
+    active: bool = True
+    created_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
 
 
 class AgentShortTermMemorySession(BaseModel):

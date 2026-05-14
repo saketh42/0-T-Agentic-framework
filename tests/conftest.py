@@ -91,7 +91,6 @@ def create_mock_db(agent_id, status, has_metadata=True):
     mock.fetch_from_registry_disabled = Mock(return_value=None)
     mock.fetch_from_registry_pending = Mock(return_value=None)
     mock.fetch_agent_security_metadata = Mock(return_value=None)
-    mock.write_audit_log = Mock(return_value=True)
 
     registry_data = MOCK_DATA["registry_records"].get(agent_id, {}).get(status)
     if registry_data:
@@ -120,7 +119,6 @@ def create_mock_db_for_unknown():
     mock.fetch_from_registry_disabled = Mock(return_value=None)
     mock.fetch_from_registry_pending = Mock(return_value=None)
     mock.fetch_agent_security_metadata = Mock(return_value=None)
-    mock.write_audit_log = Mock(return_value=True)
     return mock
 
 
@@ -131,7 +129,6 @@ def create_mock_db_with_record(record, has_metadata=True):
     mock.fetch_from_registry_disabled = Mock(return_value=None)
     mock.fetch_from_registry_pending = Mock(return_value=None)
     mock.fetch_agent_security_metadata = Mock(return_value=None)
-    mock.write_audit_log = Mock(return_value=True)
 
     if record:
         mock.fetch_from_registry_active.return_value = record

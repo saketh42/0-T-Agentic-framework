@@ -13,7 +13,7 @@ from datetime import datetime
 import redis
 
 from stm import AgentShortTermMemoryClient
-from schemas import AgentShortTermMemorySession
+from schemas import AgentShortTermMemorySession, AgentIdentityDecisionContext
 
 
 class RedisAgentShortTermMemoryClient(AgentShortTermMemoryClient):
@@ -33,6 +33,7 @@ class RedisAgentShortTermMemoryClient(AgentShortTermMemoryClient):
             decode_responses=True
         )
         self.session_ttl = int(os.getenv("STM_TTL", "1800"))
+        self.context_ttl = int(os.getenv("CONTEXT_TTL", "3600"))
 
     def create_session(
         self,
@@ -60,6 +61,26 @@ class RedisAgentShortTermMemoryClient(AgentShortTermMemoryClient):
             json.dumps(stm_data)
         )
         return AgentShortTermMemorySession(**stm_data)
+
+    def store_decision_context(self, session_id: str, context: AgentIdentityDecisionContext) -> bool:
+        """Store the full decision context in Redis with 1-hour TTL."""
+        context_dict = context.model_dump(mode="json")
+        context_dict["_key"] = f"ctx:{session_id}"
+        context_dict["timestamp"] = str(context_dict["timestamp"])
+        self.redis_client.setex(
+            f"ctx:{session_id}",
+            self.context_ttl,
+            json.dumps(context_dict, default=str)
+        )
+        return True
+
+    def get_decision_context(self, session_id: str) -> Optional[AgentIdentityDecisionContext]:
+        """Retrieve a stored decision context by session_id."""
+        raw = self.redis_client.get(f"ctx:{session_id}")
+        if raw:
+            data = json.loads(raw)
+            return AgentIdentityDecisionContext(**data)
+        return None
 
     def get_session(self, session_id: str) -> Optional[AgentShortTermMemorySession]:
         """Retrieve an existing STM session by session_id."""

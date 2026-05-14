@@ -8,17 +8,14 @@ from typing import Optional, Tuple
 from schemas import (
     IdentityValidationRequest,
     AgentIdentityDecisionContext,
-    IdentityAgentAuditLogEvent,
     IdentityValidationResponse
 )
-import uuid
-from datetime import datetime
 
 
 def submit_decision_context_to_gateway(
     request: IdentityValidationRequest,
     decision_context: AgentIdentityDecisionContext
-) -> Tuple[Optional[IdentityAgentAuditLogEvent], Optional[IdentityValidationResponse]]:
+) -> Tuple[bool, Optional[IdentityValidationResponse]]:
     """
     Sends the decision context to the Policy Agent.
     
@@ -26,8 +23,8 @@ def submit_decision_context_to_gateway(
     In production, this would make an API call to the Policy Agent.
     
     Returns:
-        (AuditLogEvent, None) on success
-        (None, IdentityValidationResponse) on failure
+        (True, None) on success
+        (False, IdentityValidationResponse) on failure
     """
     print("\n" + "="*60)
     print(" STEP 6: SEND TO POLICY AGENT")
@@ -62,39 +59,4 @@ def submit_decision_context_to_gateway(
     print(f"\n    Policy Agent Response: {policy_decision}")
     print(f"    Reason: {policy_reason}")
     
-    # Create audit log
-    audit_log = IdentityAgentAuditLogEvent(
-        event_id=str(uuid.uuid4()),
-        timestamp=datetime.utcnow(),
-        agent_id=request.agent_id,
-        session_id=request.session_id,
-        tenant_id=request.tenant_id,
-        environment=request.environment,
-        origin=request.origin,
-        network_zone=request.network_zone,
-        event_type="identity_validation",
-        decision=policy_decision,
-        reason=policy_reason
-    )
-    
-    print(f"\n    Audit log created: event_id={audit_log.event_id}")
-    
-    return audit_log, None
-
-
-def create_identity_allow_audit_log(request: IdentityValidationRequest, reason: str) -> IdentityAgentAuditLogEvent:
-    """Create an allow audit log."""
-    audit_log = IdentityAgentAuditLogEvent(
-        event_id=str(uuid.uuid4()),
-        timestamp=datetime.utcnow(),
-        agent_id=request.agent_id,
-        session_id=request.session_id,
-        tenant_id=request.tenant_id,
-        environment=request.environment,
-        origin=request.origin,
-        network_zone=request.network_zone,
-        event_type="identity_validation",
-        decision="ALLOW",
-        reason=reason
-    )
-    return audit_log
+    return True, None

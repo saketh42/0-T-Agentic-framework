@@ -9,10 +9,10 @@ from schemas import IdentityValidationResponse
 
 from validate_request import validate_identity_validation_request, validate_required_request_fields
 from connect_db import establish_identity_agent_db_connection
-from check_registry import lookup_agent_in_identity_registry, create_identity_deny_audit_log
+from check_registry import lookup_agent_in_identity_registry
 from fetch_metadata import fetch_agent_security_metadata
 from build_decision_context import build_identity_decision_context
-from send_to_policy_agent import submit_decision_context_to_gateway, create_identity_allow_audit_log
+from send_to_policy_agent import submit_decision_context_to_gateway
 from issue_jwt import issue_agent_jwt
 
 
@@ -62,20 +62,10 @@ def identity_agent_service(
     
     # Step 3: Lookup Agent in Registry
     print("\n>>> Step 3: Lookup Agent in Registry")
-    registry_record, status, reg_error, deny_audit = lookup_agent_in_identity_registry(request, db)
+    registry_record, status, reg_error = lookup_agent_in_identity_registry(request, db)
     if reg_error:
-        # Write deny audit log
-        try:
-            db.write_audit_log(deny_audit)
-            print("   [AUDIT] Deny audit log written to DB")
-        except Exception as e:
-            print(f"   [WARN] Failed to write audit log: {e}")
         print("   [FAIL] Step 3 FAILED")
-        return IdentityValidationResponse(
-            authorization="DENY",
-            failure_reason=reg_error.failure_reason,
-            audit_log_id=deny_audit.event_id
-        )
+        return reg_error
     print("   [PASS] Step 3 PASSED")
     
     # Step 4: Fetch Agent Metadata
@@ -103,11 +93,11 @@ def identity_agent_service(
     print("\n>>> Step 5: Build Decision Context")
     decision_context = build_identity_decision_context(request, metadata, status)
     print("   [PASS] Step 5 PASSED")
-    
+
     # Step 5b: Issue JWT
     print("\n>>> Step 5b: Issue JWT Token")
     try:
-        token = issue_agent_jwt(decision_context)
+        token = issue_agent_jwt(decision_context, db_client=db)
         decision_context.token = token
         print("   [PASS] JWT issued successfully")
         print(f"   Token: {token[:80]}...")
@@ -117,18 +107,22 @@ def identity_agent_service(
             authorization="DENY",
             failure_reason=f"JWT issuance failed: {str(e)}"
         )
+
+    # Store decision context in Redis (1-hour TTL)
+    if stm_client:
+        try:
+            stm_client.store_decision_context(request.session_id, decision_context)
+            print("   [REDIS] Decision context stored")
+        except Exception as e:
+            print(f"   [WARN] Failed to store decision context: {e}")
     
     # Step 6: Submit to Gateway
     print("\n>>> Step 6: Submit to Gateway")
-    allow_audit, gateway_error = submit_decision_context_to_gateway(request, decision_context)
+    success, gateway_error = submit_decision_context_to_gateway(request, decision_context)
     if gateway_error:
         print("   [FAIL] Step 6 FAILED")
-        return policy_error
-    
-    # Only write audit log for DENY cases (failure)
-    # For ALLOW cases, decision context is submitted to Gateway
+        return gateway_error
     print("   [PASS] Step 6 PASSED")
-    print("   [AUDIT] No audit log for ALLOW - submitted to Gateway")
     
     # Return success response
     print("\n" + "="*60)
@@ -137,6 +131,5 @@ def identity_agent_service(
     
     return IdentityValidationResponse(
         authorization="ALLOW",
-        identity_context=decision_context,
-        audit_log_id=None  # No audit log for success - goes to Gateway
+        identity_context=decision_context
     )

@@ -73,11 +73,13 @@ def main():
         print(f"     Autonomy:      {result.identity_context.metadata.autonomy_level}")
         print(f"     Allowed Tools: {', '.join(result.identity_context.metadata.allowed_tools)}")
         print(f"     Governance:    {', '.join(result.identity_context.metadata.governance_tags)}")
+    elif result.authorization == "BLOCK":
+        print("\n ACCESS BLOCKED - Unknown Agent")
+        print(f"\n  Error: {result.failure_reason}")
     else:
         print("\n ACCESS DENIED")
         print(f"\n  Error: {result.failure_reason}")
     
-    print(f"\n  Audit Event ID: {result.audit_log_id}")
     print("\n" + "="*60)
     
     db.close()

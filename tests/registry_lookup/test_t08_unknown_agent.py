@@ -8,5 +8,5 @@ def test_unknown_agent(test_inputs, mock_db_unknown):
     payload = test_inputs["unknown_agent"]
     result = identity_agent_service(payload, mock_db_unknown)
 
-    assert result.authorization == "DENY"
+    assert result.authorization == "BLOCK"
     assert "unknown agent" in result.failure_reason.lower()

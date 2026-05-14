@@ -58,12 +58,12 @@ def run_test(db, agent_id: str, description: str, stm_client=None):
         print(f"      - allowed_tools:  {', '.join(result.identity_context.metadata.allowed_tools)}")
         print(f"      - capabilities:   {', '.join(result.identity_context.metadata.capabilities)}")
         print(f"      - governance_tags: {', '.join(result.identity_context.metadata.governance_tags)}")
-        print(f"\n    Audit Event ID: {result.audit_log_id}")
+    elif result.authorization == "BLOCK":
+        print("\n    ACCESS BLOCKED - Unknown Agent")
+        print(f"   Error: {result.failure_reason}")
     else:
         print("\n    ACCESS DENIED")
         print(f"   Error: {result.failure_reason}")
-    
-    print(f"\n   Audit Event ID: {result.audit_log_id}")
     
     return result
 
@@ -75,7 +75,7 @@ def main():
     
     # Connect to PostgreSQL
     print("\n Connecting to PostgreSQL...")
-    db = PostgresDatabaseClient()
+    db = PostgresIdentityAgentDatabaseClient()
     print("    Connected\n")
     
     # Optional STM client (non-breaking)
@@ -97,17 +97,6 @@ def main():
     
     for agent_id, description in test_cases:
         run_test(db, agent_id, description, stm)
-    
-    # Show audit logs
-    print("\n" + "="*60)
-    print(" AUDIT LOGS IN DATABASE")
-    print("="*60)
-    with db.connection.cursor() as cursor:
-        cursor.execute('SELECT log_id, agent_id, decision, reason FROM audit_logs ORDER BY timestamp')
-        print(f"\n{'event_id':<38} {'agent_id':<15} {'decision':<8} {'reason'}")
-        print("-" * 100)
-        for row in cursor.fetchall():
-            print(f"{row[0]:<38} {row[1]:<15} {row[2]:<8} {row[3][:50]}...")
     
     db.close()
     print("\n" + "="*60)

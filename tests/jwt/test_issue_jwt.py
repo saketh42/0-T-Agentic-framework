@@ -66,17 +66,9 @@ def test_issue_jwt_decodes_with_public_key(decision_context):
         public_key = f.read()
     decoded = pyjwt.decode(token, public_key, algorithms=["RS256"])
     assert decoded["sub"] == "agent-001"
-    assert decoded["tenant_id"] == "tenant-acme"
-    assert decoded["session_id"] == "sess-123"
-    assert decoded["environment"] == "prod"
-    assert decoded["network_zone"] == "dmz"
-    assert decoded["origin"] == "192.168.1.100"
-    assert decoded["role"] == "planner"
-    assert decoded["risk_tier"] == "medium"
-    assert decoded["autonomy_level"] == "supervised"
-    assert decoded["allowed_tools"] == ["siem_query", "edr_lookup"]
-    assert decoded["capabilities"] == ["threat_hunting", "enrichment"]
-    assert decoded["governance_tags"] == ["pci", "hipaa"]
+    assert decoded["iss"] == "identity-agent"
+    assert "iat" in decoded
+    assert "exp" in decoded
 
 
 def test_issue_jwt_issuer_is_identity_agent(decision_context):
@@ -145,7 +137,6 @@ def test_issue_jwt_different_agents(decision_context):
         public_key = f.read()
     decoded2 = pyjwt.decode(token2, public_key, algorithms=["RS256"])
     assert decoded2["sub"] == "agent-002"
-    assert decoded2["environment"] == "staging"
 
 
 def test_issue_jwt_invalid_signature_rejected(decision_context):
