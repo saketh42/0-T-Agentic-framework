@@ -32,20 +32,24 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
     def _ensure_tables(self):
         with self.connection.cursor() as cur:
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS agents (
+                DROP TABLE IF EXISTS agents CASCADE;
+                CREATE TABLE agents (
                     agent_id TEXT PRIMARY KEY,
-                    tenant_id TEXT NOT NULL,
+                    tenant_id TEXT,
+                    name VARCHAR(100) NOT NULL,
+                    type VARCHAR(50),
+                    purpose TEXT,
                     environment TEXT,
-                    ownership_team TEXT,
-                    registered_at TIMESTAMPTZ DEFAULT NOW(),
-                    updated_at TIMESTAMPTZ DEFAULT NOW(),
-                    status TEXT NOT NULL DEFAULT 'active',
-                    role TEXT,
-                    risk_tier TEXT DEFAULT 'low',
-                    autonomy_level TEXT DEFAULT 'read_only',
+                    role VARCHAR(50),
+                    status VARCHAR(20) NOT NULL DEFAULT 'active',
+                    risk_tier VARCHAR(20) DEFAULT 'low',
+                    autonomy_level INT CHECK (autonomy_level BETWEEN 1 AND 5),
                     allowed_tools TEXT[] DEFAULT '{}',
                     capabilities TEXT[] DEFAULT '{}',
-                    governance_tags TEXT[] DEFAULT '{}'
+                    governance_tags TEXT[] DEFAULT '{}',
+                    ownership_team TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS signing_keys (
                     kid TEXT PRIMARY KEY,
@@ -67,17 +71,17 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
             if cur.fetchone()[0] > 0:
                 return
         demo = [
-            ("agent-001", "tenant-acme", "prod", "platform", "active", "developer", "low", "full_access",
-             ["read", "write", "execute"], ["code_review", "deploy"], ["pci", "hipaa"]),
-            ("agent-002", "tenant-acme", "staging", "platform", "suspended", "developer", "medium", "read_only",
-             ["read"], ["code_review"], ["pci"]),
-            ("agent-highrisk", "tenant-acme", "prod", "security", "active", "admin", "critical", "full_access",
-             ["read", "write", "execute", "admin"], ["deploy", "audit", "rollback"], ["pci", "hipaa", "sox"]),
+            ("agent-001", "tenant-acme", "Agent-001", "automation", "Identity management", "prod", "developer", "active", "low", 5,
+             ["read", "write", "execute"], ["code_review", "deploy"], ["pci", "hipaa"], "platform"),
+            ("agent-002", "tenant-acme", "Agent-002", "monitoring", "Session watch", "staging", "developer", "suspended", "medium", 2,
+             ["read"], ["code_review"], ["pci"], "platform"),
+            ("agent-highrisk", "tenant-acme", "Agent-HighRisk", "admin", "System administration", "prod", "admin", "active", "critical", 5,
+             ["read", "write", "execute", "admin"], ["deploy", "audit", "rollback"], ["pci", "hipaa", "sox"], "security"),
         ]
         with self.connection.cursor() as cur:
             cur.executemany("""
-                INSERT INTO agents (agent_id, tenant_id, environment, ownership_team, status, role, risk_tier, autonomy_level, allowed_tools, capabilities, governance_tags)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO agents (agent_id, tenant_id, name, type, purpose, environment, role, status, risk_tier, autonomy_level, allowed_tools, capabilities, governance_tags, ownership_team)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (agent_id) DO NOTHING
             """, demo)
 
@@ -126,25 +130,25 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
     def _row_to_registry_record(self, row: dict) -> AgentRegistryRecord:
         return AgentRegistryRecord(
             agent_id=row["agent_id"],
-            tenant_id=row["tenant_id"],
-            name=row["agent_id"],
+            tenant_id=row.get("tenant_id"),
+            name=row.get("name") or row["agent_id"],
             environment=row.get("environment"),
-            type=None,
-            purpose=None,
+            type=row.get("type"),
+            purpose=row.get("purpose"),
             role=row.get("role"),
             status=row["status"],
             risk_tier=row.get("risk_tier"),
-            autonomy_level=row.get("autonomy_level"),
+            autonomy_level=str(row["autonomy_level"]) if row.get("autonomy_level") is not None else None,
             ownership_team=row.get("ownership_team"),
             governance_tags=row.get("governance_tags") or [],
-            created_at=row.get("registered_at"),
+            created_at=row.get("created_at"),
             updated_at=row.get("updated_at")
         )
     
     def _fetch_by_status(self, agent_id: str, status: str) -> Optional[AgentRegistryRecord]:
         query = """
-            SELECT agent_id, tenant_id, environment, ownership_team,
-                   registered_at, updated_at, status, role, risk_tier,
+            SELECT agent_id, tenant_id, name, type, purpose, environment,
+                   ownership_team, created_at, updated_at, status, role, risk_tier,
                    autonomy_level, allowed_tools, capabilities, governance_tags
             FROM agents
             WHERE agent_id = %s AND status = %s
@@ -166,7 +170,7 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
     
     def fetch_agent_security_metadata(self, agent_id: str) -> Optional[AgentSecurityMetadata]:
         query = """
-            SELECT agent_id, role, risk_tier, autonomy_level,
+            SELECT agent_id, name, role, risk_tier, autonomy_level,
                    allowed_tools, capabilities, governance_tags, updated_at
             FROM agents
             WHERE agent_id = %s AND status = 'active'
@@ -175,10 +179,10 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
         if result:
             return AgentSecurityMetadata(
                 agent_id=result["agent_id"],
-                name=result["agent_id"],
+                name=result.get("name") or result["agent_id"],
                 role=result.get("role") or "",
                 risk_tier=result.get("risk_tier") or "low",
-                autonomy_level=result.get("autonomy_level") or "read_only",
+                autonomy_level=str(result["autonomy_level"]) if result.get("autonomy_level") is not None else "read_only",
                 allowed_tools=result.get("allowed_tools") or [],
                 capabilities=result.get("capabilities") or [],
                 governance_tags=result.get("governance_tags") or [],
