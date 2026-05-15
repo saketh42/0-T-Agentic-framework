@@ -6,7 +6,8 @@ Implements the DatabaseClient interface using psycopg2.
 
 import os
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -18,6 +19,7 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
     """PostgreSQL implementation of DatabaseClient"""
     
     def __init__(self):
+        load_dotenv()
         self.connection = psycopg2.connect(
             host=os.getenv("DB_HOST", "localhost"),
             port=os.getenv("DB_PORT", "5432"),
@@ -25,7 +27,91 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
             user=os.getenv("DB_USER", "postgres"),
             password=os.getenv("DB_PASSWORD", "postgres")
         )
-    
+        self._ensure_tables()
+
+    def _ensure_tables(self):
+        with self.connection.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS agents (
+                    agent_id TEXT PRIMARY KEY,
+                    tenant_id TEXT NOT NULL,
+                    environment TEXT,
+                    ownership_team TEXT,
+                    registered_at TIMESTAMPTZ DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ DEFAULT NOW(),
+                    status TEXT NOT NULL DEFAULT 'active',
+                    role TEXT,
+                    risk_tier TEXT DEFAULT 'low',
+                    autonomy_level TEXT DEFAULT 'read_only',
+                    allowed_tools TEXT[] DEFAULT '{}',
+                    capabilities TEXT[] DEFAULT '{}',
+                    governance_tags TEXT[] DEFAULT '{}'
+                );
+                CREATE TABLE IF NOT EXISTS signing_keys (
+                    kid TEXT PRIMARY KEY,
+                    private_key_pem TEXT NOT NULL,
+                    public_key_pem TEXT NOT NULL,
+                    algorithm TEXT NOT NULL DEFAULT 'RS256',
+                    active BOOLEAN DEFAULT true,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    expires_at TIMESTAMPTZ
+                );
+            """)
+            self._seed_demo_agents()
+            self._seed_signing_key()
+            self.connection.commit()
+
+    def _seed_demo_agents(self):
+        with self.connection.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM agents")
+            if cur.fetchone()[0] > 0:
+                return
+        demo = [
+            ("agent-001", "tenant-acme", "prod", "platform", "active", "developer", "low", "full_access",
+             ["read", "write", "execute"], ["code_review", "deploy"], ["pci", "hipaa"]),
+            ("agent-002", "tenant-acme", "staging", "platform", "suspended", "developer", "medium", "read_only",
+             ["read"], ["code_review"], ["pci"]),
+            ("agent-highrisk", "tenant-acme", "prod", "security", "active", "admin", "critical", "full_access",
+             ["read", "write", "execute", "admin"], ["deploy", "audit", "rollback"], ["pci", "hipaa", "sox"]),
+        ]
+        with self.connection.cursor() as cur:
+            cur.executemany("""
+                INSERT INTO agents (agent_id, tenant_id, environment, ownership_team, status, role, risk_tier, autonomy_level, allowed_tools, capabilities, governance_tags)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (agent_id) DO NOTHING
+            """, demo)
+
+    def _seed_signing_key(self):
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.backends import default_backend
+        from issue_jwt import _fingerprint
+
+        with self.connection.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM signing_keys")
+            if cur.fetchone()[0] > 0:
+                return
+        private_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048, backend=default_backend()
+        )
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ).decode()
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode()
+        kid = _fingerprint(public_pem)
+        key = SigningKey(
+            kid=kid, private_key_pem=private_pem, public_key_pem=public_pem,
+            algorithm="RS256", active=True,
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=365),
+        )
+        self.insert_signing_key(key)
+
     def _execute(self, query: str, params: tuple = None):
         """Execute a query and return results"""
         with self.connection.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -123,7 +209,39 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
                 created_at=row["created_at"],
                 expires_at=row["expires_at"]
             )
-        return None
+        self._auto_generate_key()
+        return self.get_active_signing_key()
+
+    def _auto_generate_key(self):
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.backends import default_backend
+        from issue_jwt import _fingerprint
+        from datetime import datetime, timedelta, timezone
+
+        try:
+            private_key = rsa.generate_private_key(
+                public_exponent=65537, key_size=2048, backend=default_backend()
+            )
+            private_pem = private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            ).decode()
+            public_pem = private_key.public_key().public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            ).decode()
+            kid = _fingerprint(public_pem)
+            key = SigningKey(
+                kid=kid, private_key_pem=private_pem, public_key_pem=public_pem,
+                algorithm="RS256", active=True,
+                created_at=datetime.now(timezone.utc),
+                expires_at=datetime.now(timezone.utc) + timedelta(days=365),
+            )
+            self.insert_signing_key(key)
+        except Exception as e:
+            print(f"Warning: could not auto-generate signing key: {e}")
 
     def get_signing_key_by_kid(self, kid: str) -> Optional[SigningKey]:
         query = """

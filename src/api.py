@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from postgres_client import PostgresIdentityAgentDatabaseClient
 from stm_redis_client import RedisAgentShortTermMemoryClient
 from identity_agent import identity_agent_service
+from schemas import IdentityValidationRequest
 
 app = FastAPI(title="Identity Agent API", version="1.0.0")
 
@@ -32,7 +33,12 @@ def get_db():
 def get_stm():
     global _stm
     if _stm is None:
-        _stm = RedisAgentShortTermMemoryClient()
+        try:
+            _stm = RedisAgentShortTermMemoryClient()
+            _stm.redis_client.ping()
+        except Exception:
+            from stm_memory import MemoryAgentShortTermMemoryClient
+            _stm = MemoryAgentShortTermMemoryClient()
     return _stm
 
 
@@ -71,16 +77,28 @@ def jwks(kid: str = None):
 
 
 @app.post("/validate")
-def validate_identity(payload: dict):
+def validate_identity(payload: IdentityValidationRequest):
     db = get_db()
     stm = get_stm()
-    result = identity_agent_service(payload, db_client=db, stm_client=stm)
-    return result
+    result = identity_agent_service(payload.model_dump(), db_client=db, stm_client=stm)
+
+    headers = {}
+    if result.identity_context and result.identity_context.token:
+        import base64, json
+        header_b64 = result.identity_context.token.split(".")[0]
+        header_b64 += "=" * (4 - len(header_b64) % 4)
+        kid = json.loads(base64.urlsafe_b64decode(header_b64)).get("kid")
+        if kid:
+            headers["X-KID"] = kid
+
+    return JSONResponse(content=result.model_dump(mode="json"), headers=headers)
 
 
 @app.get("/stm")
 def stm_get_all():
     stm = get_stm()
+    if hasattr(stm, '_sessions'):
+        return {"sessions": {k: v for k, v in stm._sessions.items()}}
     import json
     keys = stm.redis_client.keys("*")
     sessions = {}
