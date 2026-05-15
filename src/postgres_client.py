@@ -93,8 +93,11 @@ class PostgresIdentityAgentDatabaseClient(IdentityAgentDatabaseClient):
 
         with self.connection.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM signing_keys")
-            if cur.fetchone()[0] > 0:
+            count = cur.fetchone()[0]
+            if count > 0:
+                print(f"    Signing key already exists (count={count}), skipping seed")
                 return
+        print("    No signing key found, generating new one...")
         private_key = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
         )

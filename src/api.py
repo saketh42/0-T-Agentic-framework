@@ -57,6 +57,7 @@ def shutdown():
 @app.get("/.well-known/jwks.json")
 def jwks(kid: str = None):
     db = get_db()
+    db.get_active_signing_key()
     keys = db.list_active_signing_keys()
     if kid:
         keys = [k for k in keys if k.kid == kid]
