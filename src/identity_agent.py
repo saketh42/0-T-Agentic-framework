@@ -13,7 +13,7 @@ from check_registry import lookup_agent_in_identity_registry
 from fetch_metadata import fetch_agent_security_metadata
 from build_decision_context import build_identity_decision_context
 from send_to_policy_agent import submit_decision_context_to_gateway
-from issue_jwt import issue_agent_jwt
+from issue_jwt import issue_agent_jwt, validate_existing_jwt
 
 
 def identity_agent_service(
@@ -94,19 +94,42 @@ def identity_agent_service(
     decision_context = build_identity_decision_context(request, metadata, status)
     print("   [PASS] Step 5 PASSED")
 
-    # Step 5b: Issue JWT
-    print("\n>>> Step 5b: Issue JWT Token")
-    try:
-        token = issue_agent_jwt(decision_context, db_client=db)
-        decision_context.token = token
-        print("   [PASS] JWT issued successfully")
-        print(f"   Token: {token[:80]}...")
-    except Exception as e:
-        print(f"   [FAIL] JWT issuance failed: {e}")
-        return IdentityValidationResponse(
-            authorization="DENY",
-            failure_reason=f"JWT issuance failed: {str(e)}"
-        )
+    # Step 5b: Validate or Issue JWT
+    print("\n>>> Step 5b: Validate or Issue JWT Token")
+    existing_token = request_payload.get("auth_token") if isinstance(request_payload, dict) else None
+    if existing_token and existing_token.strip():
+        print("   Existing token found, validating...")
+        validated_token = validate_existing_jwt(existing_token, request.agent_id, db_client=db)
+        if validated_token:
+            decision_context.token = validated_token
+            print("   [PASS] Existing token is valid, reusing")
+            print(f"   Token: {validated_token[:80]}...")
+        else:
+            print("   Existing token invalid, issuing new one...")
+            try:
+                token = issue_agent_jwt(decision_context, db_client=db)
+                decision_context.token = token
+                print("   [PASS] New JWT issued successfully")
+                print(f"   Token: {token[:80]}...")
+            except Exception as e:
+                print(f"   [FAIL] JWT issuance failed: {e}")
+                return IdentityValidationResponse(
+                    authorization="DENY",
+                    failure_reason=f"JWT issuance failed: {str(e)}"
+                )
+    else:
+        print("   No existing token, issuing new one...")
+        try:
+            token = issue_agent_jwt(decision_context, db_client=db)
+            decision_context.token = token
+            print("   [PASS] JWT issued successfully")
+            print(f"   Token: {token[:80]}...")
+        except Exception as e:
+            print(f"   [FAIL] JWT issuance failed: {e}")
+            return IdentityValidationResponse(
+                authorization="DENY",
+                failure_reason=f"JWT issuance failed: {str(e)}"
+            )
 
     # Store decision context in Redis (1-hour TTL)
     if stm_client:

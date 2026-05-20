@@ -14,6 +14,7 @@ class IdentityValidationRequest(BaseModel):
     session_id: str
     origin: str
     network_zone: str
+    auth_token: Optional[str] = None
 
 
 class AgentRegistryRecord(BaseModel):

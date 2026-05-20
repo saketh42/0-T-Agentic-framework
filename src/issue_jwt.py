@@ -74,6 +74,22 @@ def issue_agent_jwt(
     return token
 
 
+def _load_private_key() -> str:
+    """Load the private key PEM string from env or fallback paths."""
+    key_path = os.getenv("IDENTITY_PRIVATE_KEY_PATH")
+    if key_path:
+        with open(key_path) as f:
+            return f.read()
+    key = os.getenv("IDENTITY_PRIVATE_KEY")
+    if key:
+        return key
+    for candidate in ["tests/test_data/test_jwt_private.pem", "tests\\test_data\\test_jwt_private.pem"]:
+        if os.path.exists(candidate):
+            with open(candidate) as f:
+                return f.read()
+    raise RuntimeError("IDENTITY_PRIVATE_KEY_PATH or IDENTITY_PRIVATE_KEY must be set")
+
+
 def _load_key_from_fallback() -> SigningKey:
     """Fallback: load key from file/env when no DB is available."""
     key_path = os.getenv("IDENTITY_PRIVATE_KEY_PATH")
@@ -117,3 +133,31 @@ def _load_key_from_fallback() -> SigningKey:
         active=True,
         created_at=datetime.now(timezone.utc),
     )
+
+
+def validate_existing_jwt(
+    token: str,
+    expected_agent_id: str,
+    db_client=None,
+) -> Optional[str]:
+    """Validate an existing JWT and return it if valid, None otherwise."""
+    try:
+        if db_client:
+            key = db_client.get_active_signing_key()
+        else:
+            key = None
+
+        if key is None:
+            key = _load_key_from_fallback()
+
+        public_key = key.public_key_pem
+
+        claims = jwt.decode(token, public_key, algorithms=["RS256"])
+
+        sub = claims.get("sub")
+        if not sub or str(sub).strip() != str(expected_agent_id).strip():
+            return None
+
+        return token
+    except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError, jwt.DecodeError, Exception):
+        return None
